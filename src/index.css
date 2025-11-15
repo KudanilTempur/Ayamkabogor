@@ -1,3 +1,30 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* --- CSS KUSTOM UNTUK HERO SECTION --- */
+
+.text-stroke-2 {
+  -webkit-text-stroke: 3px white; 
+  color: transparent !important; 
+}
+
+@layer base {
+  body, html {
+    @apply m-0 p-0 box-border; /* m-0 p-0 = margin:0; padding:0; */
+    overflow-x: hidden; /* Mencegah scroll horizontal */
+  }
+}
+
+@layer utilities {
+  .bg-krem-noise {
+    /* 1. Atur warna dasar (jika gambar gagal dimuat) */
+    background-color: #FFFBF5;
+
+    /* 2. Gunakan gambar noise Anda */
+    background-image: url('./assets/noise.jpeg'); 
+
+    /* 3. Ulangi gambarnya di seluruh area */
+    background-repeat: repeat;
+  }
+}

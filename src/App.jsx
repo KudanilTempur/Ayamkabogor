@@ -1,41 +1,35 @@
-// src/App.jsx
-
 import React from 'react';
-import './App.css'; // Ini adalah file CSS global
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import './App.css';
 
-// 1. IMPORT KOMPONEN NAVBAR YANG SUDAH KAMU BUAT
+// 1. IMPORT KOMPONEN LAYOUT (Sudah Benar)
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 
-// Nanti kamu juga akan import komponen Halaman (Pages) di sini
-// import HomePage from './pages/HomePage';
-// import LoginPage from './pages/LoginPage';
+// 2. IMPORT HALAMAN DARI FOLDER 'pages'
+// (Bukan dari 'components')
+import HalamanUtamaSaja from './pages/HalamanUtamaSaja';
+import MenuPage from './pages/menuPage';
+// import MenuLengkapPage from './pages/MenuLengkapPage'; 
 
 function App() {
-
   return (
-    // <div> ini adalah pembungkus utama seluruh website
-    <div className="App">
-
-      {/* 2. TAMPILKAN NAVBAR DI PALING ATAS */}
+    <Router>
+      {/* Layout ini tampil di semua halaman */}
       <Navbar />
 
-      {/* 3. KONTEN HALAMAN
-        Di sinilah nanti konten halaman utamamu akan muncul.
-        Untuk sekarang, kita bisa isi dengan teks sementara.
-        (Nanti ini akan di-handle oleh React Router)
-      */}
-      <main className="container mx-auto p-4">
-        <h1 className="text-3xl font-bold">Konten Halaman Utama</h1>
-        <p className="mt-2">
-          Navbar sudah berhasil tampil di atas.
-          Sekarang kita bisa mulai membuat konten halaman di bawah ini.
-        </p>
-      </main>
+      {/* Konten halaman akan berganti di sini */}
+      <Routes>
+        {/* Path "/" memuat HalamanUtamaSaja dari folder 'pages' */}
+        <Route path="/" element={<HalamanUtamaSaja />} />
 
-      {/* Nanti kamu juga bisa tambahkan <Footer /> di paling bawah */}
-      {/* <Footer /> */}
+        {/* Path "/menu-lengkap" memuat MenuLengkapPage */}
+        <Route path="/menu-lengkap" element={<MenuPage />} />
+      </Routes>
 
-    </div>
+      {/* Layout ini tampil di semua halaman */}
+      <Footer />
+    </Router>
   );
 }
 
