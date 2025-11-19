@@ -111,6 +111,12 @@ function Navbar() {
                             05 FAQ
                         </a>
                     </li>
+
+                    <li>
+                        <a href="/keranjang" onClick={toggleMenu} className="block py-3 px-6 w-60 hover:bg-black/10 rounded-md">
+                            06 keranjang
+                        </a>
+                    </li>
                 </ul>
 
                 <a

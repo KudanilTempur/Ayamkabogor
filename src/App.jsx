@@ -13,6 +13,7 @@ import MenuPage from './pages/menuPage';
 import Ulasan from './pages/ulasan';
 import About from './pages/about';
 import FAQ from './pages/FAQ';
+import Keranjang_belanja from './pages/keranjang';
 // import MenuLengkapPage from './pages/MenuLengkapPage'; 
 
 function App() {
@@ -37,6 +38,8 @@ function App() {
 
         {/* Path "/menu-lengkap" memuat MenuLengkapPage */}
         <Route path="/FAQ" element={<FAQ />} />
+
+        <Route path="/keranjang" element={<Keranjang_belanja />} />
       </Routes>
 
       {/* Layout ini tampil di semua halaman */}
