@@ -5,7 +5,7 @@ import { GiHamburgerMenu } from 'react-icons/gi';
 import { IoClose } from 'react-icons/io5';
 import { FaWhatsapp } from 'react-icons/fa';
 
-// GANTI NAMA FILE INI DENGAN NAMA LOGOMU DI src/assets
+// Pastikan path logo ini benar
 import logo from '../assets/logo-ayamkabogor.png';
 
 function Navbar() {
@@ -13,14 +13,21 @@ function Navbar() {
     const toggleMenu = () => setIsOpen(!isOpen);
 
     return (
-        // FIX 1: Ganti 'sticky' menjadi 'absolute' agar mengambang
-        // Tambahkan 'left-0 right-0' agar lebarnya 100%
+
         <header className="fixed top-0 left-0 right-0 z-50">
 
-            {/* FIX 2: Perbaiki typo 'containter' -> 'container' */}
+            {/* --- FITUR CLICK OUTSIDE (OVERLAY) --- */}
+            {/* Lapisan transparan ini menangkap klik di luar menu */}
+            {isOpen && (
+                <div
+                    className="fixed inset-0 w-full h-full bg-black/10 backdrop-blur-[1px] z-0"
+                    onClick={toggleMenu}
+                />
+            )}
+
             <nav className="container mx-auto relative p-2 h-14 flex items-center justify-end">
 
-                {/* BAR ORANYE (Sudah benar) */}
+                {/* BAR ORANYE TENGAH */}
                 <div className="w-11/12 sm:w-9/12 md:w-7/12 lg:w-4/12 xl:max-w-lg 2xl:max-w-2xl px-2 justify-center rounded top-1/2 -translate-y-1/2 bg-gradient-to-b from-orange-600 to-orange-400 text-white font-bold shadow-lg absolute left-1/2 -translate-x-1/2">
                     <div className=" flex items-center justify-between">
                         {/* Tombol Menu */}
@@ -32,12 +39,14 @@ function Navbar() {
                             {isOpen ? <IoClose size={22} /> : <GiHamburgerMenu size={22} />}
                             <span className="text-xs tracking-wider uppercase">Menu</span>
                         </button>
+
                         {/* Logo */}
                         <div>
                             <a href="/">
                                 <img src={logo} alt="Logo Ayam Kabogor" className="h-10" />
                             </a>
                         </div>
+
                         {/* Ikon WA */}
                         <a
                             href="https://wa.me/628123456789"
@@ -51,7 +60,7 @@ function Navbar() {
                     </div>
                 </div>
 
-                {/* Tombol Pesan Sekarang (Sudah benar) */}
+                {/* Tombol Pesan Sekarang (Desktop) */}
                 <div className='container mx-auto flex justify-end items-center h-14'>
                     <a
                         href="https://wa.me/628123456789"
@@ -64,20 +73,46 @@ function Navbar() {
                 </div>
             </nav>
 
-            {/* DROPDOWN MENU (Sudah benar) */}
+            {/* DROPDOWN MENU */}
             <div
                 className={`
           absolute w-11/12 sm:w-9/12 md:w-7/12 lg:w-4/12 xl:max-w-lg 2xl:max-w-2xl max-w-6xl left-1/2 -translate-x-1/2 bg-gradient-to-b from-orange-400 to-orange-500 shadow-lg 
-          text-white font-bold p-6 transition-all duration-300 ease-in-out
+          text-white font-bold p-6 transition-all duration-300 ease-in-out rounded
           ${isOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}
         `}
             >
-                {/* ... isi dropdown ... */}
                 <ul className="flex flex-col items-center text-center space-y-4 tracking-wider">
-                    <li><a href="/" onClick={toggleMenu} className="block py-3 px-6 border-b border-white/30 w-60 hover:bg-black/10 rounded-md">01 HOME</a></li>
-                    <li><a href="/about" onClick={toggleMenu} className="block py-3 px-6 border-b border-white/30 w-60 hover:bg-black/10 rounded-md">02 ABOUT US</a></li>
-                    <li><a href="/menu-lengkap" onClick={toggleMenu} className="block py-3 px-6 w-60 hover:bg-black/10 rounded-md">03 PRICELIST & MENU</a></li>
+                    <li>
+                        <a href="/" onClick={toggleMenu} className="block py-3 px-6 border-b border-white/30 w-60 hover:bg-black/10 rounded-md">
+                            01 HOME
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/about" onClick={toggleMenu} className="block py-3 px-6 border-b border-white/30 w-60 hover:bg-black/10 rounded-md">
+                            02 ABOUT US
+                        </a>
+                    </li>
+                    <li>
+                        {/* Saya tambahkan border-b disini agar konsisten dengan menu di atasnya */}
+                        <a href="/menu-lengkap" onClick={toggleMenu} className="block py-3 px-6 border-b border-white/30 w-60 hover:bg-black/10 rounded-md">
+                            03 PRICELIST & MENU
+                        </a>
+                    </li>
+
+                    {/* MENU BARU: ULASAN */}
+                    <li>
+                        <a href="/ulasan" onClick={toggleMenu} className="block py-3 px-6 w-60 hover:bg-black/10 rounded-md">
+                            04 ULASAN
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="/FAQ" onClick={toggleMenu} className="block py-3 px-6 w-60 hover:bg-black/10 rounded-md">
+                            05 FAQ
+                        </a>
+                    </li>
                 </ul>
+
                 <a
                     href="https://wa.me/628123456789"
                     target="_blank"

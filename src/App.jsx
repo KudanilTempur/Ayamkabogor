@@ -10,6 +10,9 @@ import Footer from './components/Footer';
 // (Bukan dari 'components')
 import HalamanUtamaSaja from './pages/HalamanUtamaSaja';
 import MenuPage from './pages/menuPage';
+import Ulasan from './pages/ulasan';
+import About from './pages/about';
+import FAQ from './pages/FAQ';
 // import MenuLengkapPage from './pages/MenuLengkapPage'; 
 
 function App() {
@@ -25,6 +28,15 @@ function App() {
 
         {/* Path "/menu-lengkap" memuat MenuLengkapPage */}
         <Route path="/menu-lengkap" element={<MenuPage />} />
+
+        {/* Path "/menu-lengkap" memuat MenuLengkapPage */}
+        <Route path="/ulasan" element={<Ulasan />} />
+
+        {/* Path "/menu-lengkap" memuat MenuLengkapPage */}
+        <Route path="/about" element={<About />} />
+
+        {/* Path "/menu-lengkap" memuat MenuLengkapPage */}
+        <Route path="/FAQ" element={<FAQ />} />
       </Routes>
 
       {/* Layout ini tampil di semua halaman */}

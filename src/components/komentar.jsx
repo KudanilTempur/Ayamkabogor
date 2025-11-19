@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 
-const KataMereka = () => {
+const Komentar = () => {
     const [currentTestimoni, setCurrentTestimoni] = useState(0);
 
     // Data testimoni
@@ -149,4 +149,4 @@ const KataMereka = () => {
     );
 };
 
-export default KataMereka;
+export default Komentar;
