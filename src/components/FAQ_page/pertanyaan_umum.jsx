@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 
-// DATA PERTANYAAN DAN JAWABAN (Bisa ditambah sesuka hati)
 const faqData = [
     {
         question: "Apakah Ayam Kabogor sudah bersertifikasi Halal?",
@@ -26,85 +25,77 @@ const faqData = [
 ];
 
 const PertanyaanUmum = () => {
-    // State untuk melacak pertanyaan mana yang sedang terbuka (null = tertutup semua)
     const [openIndex, setOpenIndex] = useState(null);
 
-    // Fungsi untuk membuka/menutup (toggle)
     const toggleFAQ = (index) => {
-        // Jika yang diklik sudah terbuka, maka tutup (set null). Jika belum, buka index tersebut.
         setOpenIndex(openIndex === index ? null : index);
     };
 
     return (
-        // BACKGROUND KREM (Sesuai gambar)
-        <section className="w-full py-16 px-4 bg-gradient-to-b from-orange-50 to-orange-600 min-h-screen flex flex-col items-center">
-
+        <section className="w-full py-16 px-4 bg-orange-50 min-h-screen flex flex-col items-center">
             <div className="max-w-3xl w-full">
 
-                {/* --- JUDUL --- */}
-                <div className="text-center mb-10">
-                    <h2
-                        className="text-4xl md:text-6xl font-black italic uppercase tracking-wider mb-2"
-                        style={{
-                            // Gradient Cokelat Tua ke Emas (Mirip di gambar)
-                            background: 'linear-gradient(to bottom, #8B4513, #CD853F)',
-                            WebkitBackgroundClip: 'text',
-                            WebkitTextFillColor: 'transparent',
-                            // Shadow agar terlihat timbul
-                            filter: 'drop-shadow(2px 2px 1px rgba(0,0,0,0.2))'
-                        }}
-                    >
-                        PERTANYAAN UMUM
+                {/* --- JUDUL MODERN --- */}
+                <div className="text-center mb-12">
+                    <h2 className="text-3xl md:text-5xl font-black uppercase tracking-wider mb-3 bg-gradient-to-r from-orange-800 via-orange-600 to-orange-800 bg-clip-text text-transparent">
+                        Pertanyaan Umum
                     </h2>
-                    {/* Garis hiasan di bawah judul */}
-                    <div className="w-24 h-1 bg-orange-600 mx-auto rounded-full mt-2"></div>
+                    <p className="text-gray-500 text-sm md:text-base">
+                        Hal-hal yang sering ditanyakan oleh pelanggan kami
+                    </p>
+                    <div className="w-20 h-1.5 bg-orange-500 mx-auto rounded-full mt-4"></div>
                 </div>
 
                 {/* --- LIST PERTANYAAN --- */}
-                <div className="flex flex-col space-y-4">
-                    {faqData.map((item, index) => (
-                        <div key={index} className="w-full">
+                <div className="space-y-4">
+                    {faqData.map((item, index) => {
+                        const isOpen = openIndex === index;
 
-                            {/* TOMBOL (HEADER) */}
-                            <button
-                                onClick={() => toggleFAQ(index)}
-                                className={`
-                                    w-full flex items-center justify-between px-6 py-4 
-                                    bg-gradient-to-r from-orange-500 to-orange-400
-                                    text-white font-bold text-lg md:text-xl text-left
-                                    shadow-md hover:shadow-lg hover:scale-[1.01] 
-                                    transition-all duration-300 rounded-xl
-                                    ${openIndex === index ? 'rounded-b-none' : ''} // Jika terbuka, sudut bawah jadi siku
-                                `}
-                            >
-                                <span>{item.question}</span>
-                                {/* Ikon Panah Berubah Arah */}
-                                {openIndex === index ? (
-                                    <div className="bg-white/20 p-1 rounded-full">
-                                        <ChevronUp className="w-6 h-6 text-white" />
-                                    </div>
-                                ) : (
-                                    <div className="bg-white/20 p-1 rounded-full">
-                                        <ChevronDown className="w-6 h-6 text-white" />
-                                    </div>
-                                )}
-                            </button>
-
-                            {/* ISI JAWABAN (ANIMASI BUKA TUTUP) */}
+                        return (
                             <div
+                                key={index}
                                 className={`
-                                    overflow-hidden transition-all duration-500 ease-in-out
-                                    bg-white border-x border-b border-orange-200 rounded-b-xl
-                                    ${openIndex === index ? 'max-h-40 opacity-100 p-6' : 'max-h-0 opacity-0 p-0 border-none'}
+                                    group rounded-xl overflow-hidden transition-all duration-300 border
+                                    ${isOpen
+                                        ? 'border-orange-500 shadow-lg bg-white ring-2 ring-orange-200'
+                                        : 'border-orange-100 bg-white hover:border-orange-300 shadow-sm'
+                                    }
                                 `}
                             >
-                                <p className="text-gray-700 text-base md:text-lg leading-relaxed">
-                                    {item.answer}
-                                </p>
-                            </div>
+                                {/* HEADER TOMBOL */}
+                                <button
+                                    onClick={() => toggleFAQ(index)}
+                                    className={`
+                                        w-full flex items-center justify-between px-6 py-5 
+                                        text-left font-bold text-base md:text-lg transition-all duration-300
+                                        ${isOpen
+                                            ? 'bg-orange-600 text-white'
+                                            : 'bg-white text-gray-700 group-hover:text-orange-600'
+                                        }
+                                    `}
+                                >
+                                    <span>{item.question}</span>
 
-                        </div>
-                    ))}
+                                    {/* Ikon Panah dengan Animasi Putar */}
+                                    <ChevronDown
+                                        className={`w-6 h-6 transition-transform duration-300 ${isOpen ? 'rotate-180 text-white' : 'text-gray-400 group-hover:text-orange-500'}`}
+                                    />
+                                </button>
+
+                                {/* ISI JAWABAN */}
+                                <div
+                                    className={`
+                                        transition-all duration-300 ease-in-out overflow-hidden
+                                        ${isOpen ? 'max-h-48 opacity-100' : 'max-h-0 opacity-0'}
+                                    `}
+                                >
+                                    <div className="p-6 text-gray-600 text-sm md:text-base leading-relaxed bg-orange-50/30">
+                                        {item.answer}
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
                 </div>
 
             </div>
