@@ -14,12 +14,16 @@ import {
     Search,
     X,
     Save,
-    Image as ImageIcon,
-    AlertCircle
+    MessageSquare,
+    Star,
+    AlertCircle,
+    Eye,
+    Trash
 } from 'lucide-react';
 
-// URL API produk
+// URL API
 const API_BASE_URL = "http://127.0.0.1:8000/api/products";
+const REVIEWS_API_URL = "http://127.0.0.1:8000/api/reviews";
 
 const AdminDashboard = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 768);
@@ -27,6 +31,7 @@ const AdminDashboard = () => {
 
     const [orders, setOrders] = useState([]);
     const [customers, setCustomers] = useState([]);
+    const [reviews, setReviews] = useState([]);
 
     // DATA PRODUK
     const [menus, setMenus] = useState([]);
@@ -35,6 +40,8 @@ const AdminDashboard = () => {
     // MODAL
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
+    const [isReviewDetailOpen, setIsReviewDetailOpen] = useState(false);
+    const [selectedReview, setSelectedReview] = useState(null);
 
     const [searchTerm, setSearchTerm] = useState('');
 
@@ -58,7 +65,7 @@ const AdminDashboard = () => {
     }, []);
 
     // ===========================================
-    // DUMMY DATA
+    // FETCH DATA
     // ===========================================
     const fetchCustomers = () => {
         setCustomers([
@@ -68,19 +75,28 @@ const AdminDashboard = () => {
         ]);
     };
 
-    const fetchOrders = async () => {
+    const fetchOrders = () => {
+        setOrders([
+            { id: 1, customer: "Budi", total: 50000, status: "Selesai" },
+            { id: 2, customer: "Sinta", total: 75000, status: "Proses" },
+        ]);
+    };
+
+    // FETCH ULASAN DARI BACKEND
+    const fetchReviews = async () => {
+        setIsLoading(true);
         try {
-            const data = await api.get("orders");
-            setOrders(data);
-        } catch (err) {
-            console.error("Failed fetching orders:", err);
+            const response = await axios.get(REVIEWS_API_URL);
+            const data = response.data.data ? response.data.data : response.data;
+            setReviews(data);
+        } catch (error) {
+            console.error("Fetch Reviews Error:", error);
+        } finally {
+            setIsLoading(false);
         }
     };
 
-
-    // ===========================================
     // FETCH PRODUK DARI BACKEND
-    // ===========================================
     const fetchProducts = async () => {
         setIsLoading(true);
         try {
@@ -102,6 +118,7 @@ const AdminDashboard = () => {
         fetchProducts();
         fetchCustomers();
         fetchOrders();
+        fetchReviews();
 
         const handleResize = () => {
             if (window.innerWidth < 768) {
@@ -111,9 +128,7 @@ const AdminDashboard = () => {
             }
         };
 
-        // 🔥 panggil sekali saat pertama render
         handleResize();
-
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
@@ -139,6 +154,11 @@ const AdminDashboard = () => {
         setImageFile(null);
         setCurrentMenu(menu);
         setIsModalOpen(true);
+    };
+
+    const handleOpenReviewDetail = (review) => {
+        setSelectedReview(review);
+        setIsReviewDetailOpen(true);
     };
 
     // ========================================================
@@ -189,6 +209,21 @@ const AdminDashboard = () => {
     };
 
     // ========================================================
+    // DELETE REVIEW
+    // ========================================================
+    const handleDeleteReview = async (id) => {
+        if (!window.confirm("Yakin ingin menghapus ulasan ini?")) return;
+        try {
+            await axios.delete(`${REVIEWS_API_URL}/${id}`);
+            alert("Ulasan berhasil dihapus");
+            fetchReviews();
+        } catch (error) {
+            console.error("Delete Review Error:", error);
+            alert("Gagal menghapus ulasan.");
+        }
+    };
+
+    // ========================================================
     // LOGOUT
     // ========================================================
     const handleLogout = () => {
@@ -199,6 +234,19 @@ const AdminDashboard = () => {
     };
 
     // ========================================================
+    // RENDER STARS
+    // ========================================================
+    const renderStars = (rating) => {
+        return [...Array(5)].map((_, i) => (
+            <Star
+                key={i}
+                size={16}
+                className={i < rating ? "fill-yellow-400 text-yellow-400" : "fill-gray-300 text-gray-300"}
+            />
+        ));
+    };
+
+    // ========================================================
     // HALAMAN DASHBOARD
     // ========================================================
     const DashboardView = () => {
@@ -206,7 +254,7 @@ const AdminDashboard = () => {
             { title: "Total Penjualan", value: "Rp 15.450.000", icon: <DollarSign />, color: "bg-green-500" },
             { title: "Pesanan Masuk", value: orders.length, icon: <ShoppingBag />, color: "bg-blue-500" },
             { title: "Total Menu", value: menus.length, icon: <Utensils />, color: "bg-orange-500" },
-            { title: "Pelanggan", value: customers.length, icon: <Users />, color: "bg-purple-500" },
+            { title: "Total Ulasan", value: reviews.length, icon: <MessageSquare />, color: "bg-purple-500" },
         ];
 
         return (
@@ -229,6 +277,115 @@ const AdminDashboard = () => {
 
                 <div className="bg-white h-80 rounded-xl shadow-md flex items-center justify-center">
                     Grafik Penjualan (Belum diisi)
+                </div>
+            </div>
+        );
+    };
+
+    // ========================================================
+    // VIEW ULASAN PELANGGAN
+    // ========================================================
+    const ReviewsView = () => {
+        const filteredReviews = reviews.filter(review =>
+            review.product_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            review.review_text?.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+
+        // Hitung rata-rata rating
+        const averageRating = reviews.length > 0
+            ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
+            : 0;
+
+        return (
+            <div className="space-y-6 animate-in fade-in duration-500">
+                <div className="flex justify-between items-center flex-wrap gap-4">
+                    <div>
+                        <h2 className="text-2xl font-bold text-gray-800">Ulasan Pelanggan ({reviews.length})</h2>
+                        <p className="text-sm text-gray-600 mt-1">
+                            Rating Rata-rata: <span className="font-bold text-yellow-500">{averageRating} ★</span>
+                        </p>
+                    </div>
+                </div>
+
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div className="p-4 border-b">
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                            <input
+                                type="text"
+                                placeholder="Cari ulasan berdasarkan produk atau komentar..."
+                                className="w-full pl-10 pr-4 py-2 border rounded-lg"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left text-sm text-gray-600 min-w-[700px]">
+                            <thead className="bg-gray-50">
+                                <tr>
+                                    <th className="px-6 py-3">Produk</th>
+                                    <th className="px-6 py-3">Rating</th>
+                                    <th className="px-6 py-3 w-1/3">Ulasan</th>
+                                    <th className="px-6 py-3">Tanggal</th>
+                                    <th className="px-6 py-3 text-center w-32">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y">
+                                {isLoading ? (
+                                    <tr>
+                                        <td colSpan="5" className="text-center py-4">Loading...</td>
+                                    </tr>
+                                ) : filteredReviews.length > 0 ? (
+                                    filteredReviews.map((review) => (
+                                        <tr key={review.id} className="hover:bg-purple-50/50">
+                                            <td className="px-6 py-4 font-medium">{review.product_name}</td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-1">
+                                                    {renderStars(review.rating)}
+                                                    <span className="ml-1 text-xs text-gray-500">({review.rating})</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <p className="line-clamp-2">{review.review_text}</p>
+                                            </td>
+                                            <td className="px-6 py-4 text-xs text-gray-500">
+                                                {new Date(review.created_at).toLocaleDateString('id-ID', {
+                                                    day: 'numeric',
+                                                    month: 'short',
+                                                    year: 'numeric'
+                                                })}
+                                            </td>
+                                            <td className="px-6 py-4 flex justify-center gap-2">
+                                                <button
+                                                    className="text-blue-600 hover:text-blue-800"
+                                                    onClick={() => handleOpenReviewDetail(review)}
+                                                    title="Lihat Detail"
+                                                >
+                                                    <Eye size={18} />
+                                                </button>
+                                                <button
+                                                    className="text-red-600 hover:text-red-800"
+                                                    onClick={() => handleDeleteReview(review.id)}
+                                                    title="Hapus Ulasan"
+                                                >
+                                                    <Trash size={18} />
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan="5" className="text-center py-10 text-gray-500">
+                                            <AlertCircle size={32} className="mx-auto mb-2" />
+                                            Tidak ada ulasan ditemukan
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         );
@@ -370,6 +527,7 @@ const AdminDashboard = () => {
                 <nav className="flex-1 overflow-y-auto p-3 space-y-2">
                     <SidebarItem icon={<LayoutDashboard size={20} />} text="Dashboard" active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />
                     <SidebarItem icon={<Utensils size={20} />} text="Kelola Produk" active={activeTab === 'menu'} onClick={() => setActiveTab('menu')} />
+                    <SidebarItem icon={<MessageSquare size={20} />} text="Ulasan" active={activeTab === 'reviews'} onClick={() => setActiveTab('reviews')} />
                     <SidebarItem icon={<ShoppingBag size={20} />} text="Pesanan" active={activeTab === 'orders'} onClick={() => setActiveTab('orders')} />
                     <SidebarItem icon={<Users size={20} />} text="Pelanggan" active={activeTab === 'customers'} onClick={() => setActiveTab('customers')} />
                 </nav>
@@ -405,6 +563,7 @@ const AdminDashboard = () => {
                 <main className="flex-1 overflow-y-auto p-6 bg-gray-50">
                     {activeTab === 'dashboard' && <DashboardView />}
                     {activeTab === 'menu' && <MenuManagerView />}
+                    {activeTab === 'reviews' && <ReviewsView />}
 
                     {activeTab === 'orders' && (
                         <div className="bg-white p-6 rounded-xl shadow">
@@ -460,7 +619,7 @@ const AdminDashboard = () => {
                 </main>
             </div>
 
-            {/* MODAL EDIT / ADD */}
+            {/* MODAL EDIT / ADD PRODUK */}
             {isModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
                     <div className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
@@ -523,12 +682,111 @@ const AdminDashboard = () => {
                                 </button>
                                 <button
                                     type="submit"
-                                    className="flex-1 px-4 py-2 bg-orange-600 text-white rounded"
+                                    className="flex-1 px-4 py-2 bg-orange-600 text-white rounded flex items-center justify-center gap-2"
                                 >
                                     <Save size={18} /> {isEditing ? 'Update' : 'Simpan'}
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* MODAL DETAIL ULASAN */}
+            {isReviewDetailOpen && selectedReview && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                    <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                        <div className="px-6 py-4 border-b flex justify-between items-center bg-gradient-to-r from-purple-50 to-blue-50">
+                            <h3 className="font-bold text-lg text-gray-800 flex items-center gap-2">
+                                <MessageSquare size={20} className="text-purple-600" />
+                                Detail Ulasan Pelanggan
+                            </h3>
+                            <button
+                                onClick={() => setIsReviewDetailOpen(false)}
+                                className="text-gray-500 hover:text-gray-700 transition"
+                            >
+                                <X size={24} />
+                            </button>
+                        </div>
+
+                        <div className="p-6 space-y-6">
+                            {/* Produk yang Diulas */}
+                            <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                                <label className="text-xs font-semibold text-orange-700 uppercase tracking-wide">
+                                    Produk yang Diulas
+                                </label>
+                                <p className="text-lg font-bold text-gray-800 mt-1">
+                                    {selectedReview.product_name}
+                                </p>
+                            </div>
+
+                            {/* Rating */}
+                            <div>
+                                <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">
+                                    Rating Produk
+                                </label>
+                                <div className="flex items-center gap-2">
+                                    <div className="flex gap-1">
+                                        {renderStars(selectedReview.rating)}
+                                    </div>
+                                    <span className="text-2xl font-bold text-yellow-600">
+                                        {selectedReview.rating}.0
+                                    </span>
+                                    <span className="text-sm text-gray-500">/ 5.0</span>
+                                </div>
+                            </div>
+
+                            {/* Ulasan Text */}
+                            <div>
+                                <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-2">
+                                    Isi Ulasan
+                                </label>
+                                <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 min-h-[120px]">
+                                    <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                                        {selectedReview.review_text}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Tanggal */}
+                            <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+                                <div>
+                                    <label className="text-xs font-semibold text-gray-600 uppercase tracking-wide block mb-1">
+                                        Tanggal Ulasan
+                                    </label>
+                                    <p className="text-sm text-gray-700">
+                                        {new Date(selectedReview.created_at).toLocaleDateString('id-ID', {
+                                            weekday: 'long',
+                                            day: 'numeric',
+                                            month: 'long',
+                                            year: 'numeric',
+                                            hour: '2-digit',
+                                            minute: '2-digit'
+                                        })}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="flex gap-3 pt-4">
+                                <button
+                                    onClick={() => setIsReviewDetailOpen(false)}
+                                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+                                >
+                                    Tutup
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        handleDeleteReview(selectedReview.id);
+                                        setIsReviewDetailOpen(false);
+                                    }}
+                                    className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition flex items-center justify-center gap-2"
+                                >
+                                    <Trash size={18} />
+                                    Hapus Ulasan
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}
