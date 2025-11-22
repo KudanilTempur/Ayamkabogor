@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import axions from 'axios';
+
 
 // Gunakan gambar yang sama atau beda dengan login, bebas.
 // Untuk preview saya pakai placeholder. Di laptop, ganti dengan import gambar lokalmu.
 const registerImage = "https://placehold.co/600x800/orange/white?text=Gabung+Sekarang";
-// import registerImage from '../assets/nasi-tumpeng.png'; 
-
+const API_BASE = "http://127.0.0.1:8000/api"
 const RegisterPage = () => {
     const navigate = useNavigate();
     const [formData, setFormData] = useState({
@@ -19,7 +20,7 @@ const RegisterPage = () => {
         setFormData({ ...formData, [e.target.id]: e.target.value });
     };
 
-    const handleRegister = (e) => {
+    const handleRegister = async (e) => {
         e.preventDefault();
 
         // Validasi Sederhana
@@ -28,10 +29,21 @@ const RegisterPage = () => {
             return;
         }
 
-        // Simulasi Register Sukses
-        console.log("Data Register:", formData);
-        alert("Registrasi Berhasil! Silakan Login.");
-        navigate('/login'); // Arahkan ke halaman login
+        const postData = {
+            name: formData.name,
+            email: formData.email,
+            password: formData.password,
+            address: formData.address,
+            phone_number: formData.phone_number,
+        }
+
+        const res = await axions.post(`${API_BASE}/register`, postData);
+
+        if (res.status == 200) {
+            navigate('/login'); // Arahkan ke halaman login
+        } else {
+            alert("Registrasi Gagal!");
+        }
     };
 
     return (
@@ -83,6 +95,26 @@ const RegisterPage = () => {
                                     value={formData.confirmPassword} onChange={handleChange} required
                                 />
                             </div>
+                        </div>
+
+                        <div>
+                            <label htmlFor="email" className="block text-sm font-bold text-gray-700 mb-1">alamat</label>
+                            <input
+                                type="text" id="address"
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none bg-gray-50"
+                                placeholder="alamat lengkap"
+                                value={formData.address} onChange={handleChange} required
+                            />
+                        </div>
+
+                        <div>
+                            <label htmlFor="email" className="block text-sm font-bold text-gray-700 mb-1">nomer hp</label>
+                            <input
+                                type="text" id="phone_number"
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none bg-gray-50"
+                                placeholder="08952243445"
+                                value={formData.phone_number} onChange={handleChange} required
+                            />
                         </div>
 
                         <button

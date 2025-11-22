@@ -1,143 +1,195 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 
-// Kita tidak butuh 'recharts' lagi sesuai desain baru
-// Pastikan props menerima: menus, reviews, orders, DAN customers
-export default function DashboardView({ menus = [], reviews = [], orders = [], customers = [] }) {
+export default function DashboardView() {
+    // --- 1. STATE & INISIALISASI ---
 
-    // --- 1. HITUNG STATISTIK ---
-    const totalPengguna = customers.length || 0;
-    const totalPesanan = orders.length || 0;
-    const totalMenu = menus.length || 0;
+    const today = new Date().toISOString().split('T')[0];
 
-    // Data Mockup / Hitungan Sederhana (Sesuaikan logika ini nanti jika ada data real)
-    const penggunaBaru = 10; // Angka statis sementara
-    const pesananBaru = orders.filter(o => o.status === 'Proses' || o.status === 'pending').length || 0;
-    const klikCTA = 27; // Angka statis sementara
+    const [startDate, setStartDate] = useState(today);
+    const [endDate, setEndDate] = useState(today);
 
-    // --- 2. KOMPONEN KARTU (Helper Component) ---
-    const StatCard = ({ title, count, iconPath }) => (
+    const [dashboardData, setDashboardData] = useState({
+        total_user: 0,
+        totalOrderSuccess: 0,
+        cta: 0,
+        best_selling_products: []
+    });
+
+    const [isLoading, setIsLoading] = useState(false);
+
+    // --- 2. HANDLER TANGGAL (DENGAN VALIDASI) ---
+
+    const handleStartDateChange = (e) => {
+        const newStart = e.target.value;
+        setStartDate(newStart);
+
+        // Validasi: Jika Start Date melebihi End Date, geser End Date biar sama
+        if (newStart > endDate) {
+            setEndDate(newStart);
+        }
+    };
+
+    const handleEndDateChange = (e) => {
+        const newEnd = e.target.value;
+
+        // Validasi: Jika End Date kurang dari Start Date, jangan biarkan (atau geser Start Date)
+        if (newEnd < startDate) {
+            alert("Tanggal Akhir tidak boleh lebih mundur dari Tanggal Awal!");
+            // Opsi lain: setStartDate(newEnd); // Auto-correct
+            return;
+        }
+        setEndDate(newEnd);
+    };
+
+    // --- 3. FETCH DATA DARI API ---
+    useEffect(() => {
+        const fetchDashboardData = async () => {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+
+            // Double check validation sebelum fetch
+            if (startDate > endDate) return;
+
+            setIsLoading(true);
+            try {
+                const response = await axios.get('http://127.0.0.1:8000/api/dashboard', {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    },
+                    params: {
+                        startDate: startDate,
+                        endDate: endDate
+                    }
+                });
+
+                if (response.data && response.data.data) {
+                    setDashboardData(response.data.data);
+                }
+
+            } catch (error) {
+                console.error("Gagal mengambil data dashboard:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        if (startDate && endDate) {
+            fetchDashboardData();
+        }
+    }, [startDate, endDate]);
+
+
+    // --- 4. KOMPONEN KARTU ---
+    const StatCard = ({ title, count, iconPath, color = "bg-orange-500" }) => (
         <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 flex items-center gap-4">
-            {/* Kotak Icon Oranye */}
-            <div className="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center text-white shrink-0">
+            <div className={`w-12 h-12 ${color} rounded-lg flex items-center justify-center text-white shrink-0`}>
                 {iconPath}
             </div>
-            {/* Text */}
             <div>
-                <h3 className="text-2xl font-bold text-gray-800">{count}</h3>
+                <h3 className="text-2xl font-bold text-gray-800">
+                    {isLoading ? "..." : count}
+                </h3>
                 <p className="text-sm text-gray-500">{title}</p>
             </div>
         </div>
     );
 
-    // --- 3. ICONS (SVG) ---
+    // --- 5. ICONS ---
     const IconUser = <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>;
     const IconOrder = <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18.182 12.12 21 20.85 12.5" /><path d="M7 2h10a2 2 0 0 1 2 2v14.5a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Z" /></svg>;
-    const IconMenu = <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18" /><path d="M3 12h18" /><path d="M3 18h18" /></svg>;
     const IconCursor = <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 12-9-9" /><path d="M19 9 10 18l-3-3" /><path d="m21 21-9-9" /></svg>;
 
     return (
         <div className="space-y-8">
 
-            {/* --- BAGIAN 1: DASHBOARD UTAMA --- */}
-            {/* (Total Pengunjung dihilangkan sesuai request) */}
-            <div>
-                <h2 className="text-orange-500 font-bold mb-4 text-lg">Dashboard</h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <StatCard
-                        title="Total Pengguna"
-                        count={totalPengguna}
-                        iconPath={IconUser}
-                    />
-                    <StatCard
-                        title="Total Pesanan"
-                        count={totalPesanan}
-                        iconPath={IconOrder}
-                    />
-                    <StatCard
-                        title="Total Menu"
-                        count={totalMenu}
-                        iconPath={IconMenu}
-                    />
-                </div>
-            </div>
-
-            {/* --- BAGIAN 2: AKTIVITAS TERKINI --- */}
-            {/* (Pengunjung Website dihilangkan sesuai request) */}
-            <div>
-                <h2 className="text-orange-500 font-bold mb-4 text-lg">Aktivitas Terkini</h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <StatCard
-                        title="Pengguna Baru"
-                        count={penggunaBaru}
-                        iconPath={IconUser}
-                    />
-                    <StatCard
-                        title="Pesanan Baru"
-                        count={pesananBaru}
-                        iconPath={IconOrder}
-                    />
-                    <StatCard
-                        title="Klik CTA Hari Ini"
-                        count={klikCTA}
-                        iconPath={IconCursor}
-                    />
-                </div>
-            </div>
-
-            {/* --- BAGIAN 3: DATE FILTER --- */}
-            {/* (Aksi Cepat Tambah Menu sudah dihilangkan) */}
+            {/* --- FILTER TANGGAL --- */}
             <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+                <h2 className="text-lg font-bold text-gray-700 mb-4">Filter Periode</h2>
                 <div className="flex flex-col md:flex-row gap-4">
                     <div className="flex-1">
                         <label className="text-orange-500 font-bold text-sm mb-1 block">Tanggal Awal</label>
                         <input
                             type="date"
-                            className="w-full p-2 border border-gray-300 rounded bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-200"
+                            value={startDate}
+                            onChange={handleStartDateChange} // ✅ Pakai handler baru
+                            className="w-full p-2 border border-gray-300 rounded bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-200 transition"
                         />
                     </div>
                     <div className="flex-1">
                         <label className="text-orange-500 font-bold text-sm mb-1 block">Tanggal Akhir</label>
                         <input
                             type="date"
-                            className="w-full p-2 border border-gray-300 rounded bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-200"
+                            value={endDate}
+                            min={startDate} // ✅ Validasi HTML native: min date = start date
+                            onChange={handleEndDateChange} // ✅ Pakai handler baru
+                            className="w-full p-2 border border-gray-300 rounded bg-gray-50 text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-200 transition"
                         />
                     </div>
                 </div>
             </div>
 
-            {/* --- BAGIAN 4: PRODUK TERLARIS --- */}
+            {/* --- BAGIAN 1: DASHBOARD UTAMA --- */}
             <div>
-                <h2 className="text-orange-500 font-bold mb-4 text-lg">Produk Terlaris</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {/* Mengambil 3 menu pertama sebagai dummy produk terlaris */}
-                    {menus.slice(0, 3).map((menu) => (
-                        <div key={menu.id} className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 flex items-center gap-4">
-                            {/* Gambar Produk */}
-                            <div className="w-20 h-20 bg-gray-200 rounded overflow-hidden shrink-0 border">
-                                {menu.product_url_image ? (
-                                    <img
-                                        src={menu.product_url_image}
-                                        alt={menu.name}
-                                        className="w-full h-full object-cover"
-                                    />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs bg-gray-100">
-                                        No Img
-                                    </div>
-                                )}
-                            </div>
-                            {/* Info Produk */}
-                            <div>
-                                <h3 className="font-bold text-gray-800 text-lg line-clamp-1" title={menu.name}>
-                                    {menu.name || menu.product_name}
-                                </h3>
-                                <p className="text-sm text-gray-500">150 Pcs Terjual</p>
-                            </div>
-                        </div>
-                    ))}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <StatCard
+                        title="Total Pengguna"
+                        count={dashboardData.total_user}
+                        iconPath={IconUser}
+                        color="bg-blue-500"
+                    />
+                    <StatCard
+                        title="Pesanan Sukses"
+                        count={dashboardData.totalOrderSuccess}
+                        iconPath={IconOrder}
+                        color="bg-green-500"
+                    />
+                    <StatCard
+                        title="Klik CTA (WhatsApp)"
+                        count={dashboardData.cta}
+                        iconPath={IconCursor}
+                        color="bg-orange-500"
+                    />
+                </div>
+            </div>
 
-                    {menus.length === 0 && (
-                        <p className="text-gray-400 text-sm italic col-span-full">Belum ada data produk.</p>
+            {/* --- BAGIAN 2: PRODUK TERLARIS --- */}
+            <div>
+                <h2 className="text-orange-500 font-bold mb-4 text-lg flex items-center gap-2">
+                    Produk Terlaris
+                    {isLoading && <span className="text-xs font-normal text-gray-400 animate-pulse">(Memuat data...)</span>}
+                </h2>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {dashboardData.best_selling_products.length > 0 ? (
+                        dashboardData.best_selling_products.map((product, index) => (
+                            <div key={index} className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 flex flex-col justify-between h-full hover:shadow-md transition">
+                                <div>
+                                    <div className="flex justify-between items-start mb-2">
+                                        <h3 className="font-bold text-gray-800 text-lg line-clamp-2" title={product.product_name}>
+                                            {product.product_name}
+                                        </h3>
+                                        <span className="bg-orange-100 text-orange-700 text-xs font-bold px-2 py-1 rounded-full">
+                                            #{index + 1}
+                                        </span>
+                                    </div>
+                                    <div className="w-full bg-gray-100 h-1 rounded-full mb-3">
+                                        <div className="bg-orange-500 h-1 rounded-full" style={{ width: '60%' }}></div>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-2 mt-2">
+                                    <span className="text-3xl font-black text-gray-700">
+                                        {product.total_sold}
+                                    </span>
+                                    <span className="text-sm text-gray-500">Pcs Terjual</span>
+                                </div>
+                            </div>
+                        ))
+                    ) : (
+                        <div className="col-span-full bg-gray-50 border border-dashed border-gray-300 rounded-lg p-8 text-center">
+                            <p className="text-gray-500 italic">Belum ada data penjualan pada periode ini.</p>
+                        </div>
                     )}
                 </div>
             </div>

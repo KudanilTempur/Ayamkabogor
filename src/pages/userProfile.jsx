@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Mail, Phone, MapPin, Edit2, Camera, Save, CheckCircle, AlertTriangle, LogOut } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Edit2, Save, CheckCircle, AlertTriangle, LogOut } from 'lucide-react';
 
 // --- KONFIGURASI API ---
 const BASE_API_URL = "http://127.0.0.1:8000/api";
@@ -10,9 +10,8 @@ const UserProfileSecure = () => {
         id: null,
         name: "",
         email: "",
-        phone: "",
+        phone: "", // Di frontend kita pakai 'phone', nanti dikirim sebagai 'phone_number'
         address: "",
-        avatar: null,
         member_since: null
     });
 
@@ -24,10 +23,6 @@ const UserProfileSecure = () => {
     const [toastMessage, setToastMessage] = useState({ type: 'success', text: '' });
     const [errorMessage, setErrorMessage] = useState(null);
 
-    // State untuk upload avatar
-    const [avatarFile, setAvatarFile] = useState(null);
-    const [avatarPreview, setAvatarPreview] = useState(null);
-
     // Form validation errors
     const [validationErrors, setValidationErrors] = useState({});
 
@@ -35,7 +30,6 @@ const UserProfileSecure = () => {
     const checkAuth = () => {
         const token = localStorage.getItem('token');
         if (!token) {
-            // Jika tidak ada token, redirect ke login
             alert('Sesi berakhir. Silakan login kembali.');
             window.location.href = '/login';
             return false;
@@ -43,7 +37,7 @@ const UserProfileSecure = () => {
         return token;
     };
 
-    // ✅ 2. FETCH USER PROFILE (Secure)
+    // ✅ 2. FETCH USER PROFILE
     const fetchUserProfile = async () => {
         setIsLoading(true);
         setErrorMessage(null);
@@ -61,9 +55,7 @@ const UserProfileSecure = () => {
                 },
             });
 
-            // Handle berbagai status code
             if (response.status === 401) {
-                // Token expired atau invalid
                 localStorage.removeItem('token');
                 alert('Sesi berakhir. Silakan login kembali.');
                 window.location.href = '/login';
@@ -75,16 +67,18 @@ const UserProfileSecure = () => {
             }
 
             const result = await response.json();
-            const data = result.data || result;
+
+            // Mapping response backend ke state frontend
+            const data = result.User || result.data || {};
 
             setUserData({
                 id: data.id,
                 name: data.name || '',
                 email: data.email || '',
-                phone: data.phone || '',
+                // Backend kirim 'phone_number', kita simpan di state 'phone'
+                phone: data.phone_number || data.phone || '',
                 address: data.address || '',
-                avatar: data.profile_photo || data.avatar || null,
-                member_since: data.member_since || data.created_at
+                member_since: data.created_at
             });
 
         } catch (error) {
@@ -96,7 +90,6 @@ const UserProfileSecure = () => {
         }
     };
 
-    // Load profile saat component mount
     useEffect(() => {
         fetchUserProfile();
     }, []);
@@ -105,28 +98,27 @@ const UserProfileSecure = () => {
     const validateForm = () => {
         const errors = {};
 
-        // Validasi Nama
         if (!userData.name || userData.name.trim().length < 3) {
             errors.name = 'Nama minimal 3 karakter';
         }
 
-        // Validasi Phone
-        if (userData.phone && !/^[0-9]{10,13}$/.test(userData.phone.replace(/[-\s]/g, ''))) {
-            errors.phone = 'Format nomor telepon tidak valid';
+        if (!userData.address || userData.address.trim() === "") {
+            errors.address = 'Alamat wajib diisi';
         }
 
-        // Validasi Address
-        if (userData.address && userData.address.length > 200) {
-            errors.address = 'Alamat maksimal 200 karakter';
+        // Validasi phone number (Max 20 chars sesuai request backend)
+        if (!userData.phone || userData.phone.length > 20) {
+            errors.phone = 'Nomor telepon wajib diisi (maks 20 karakter)';
+        } else if (!/^[0-9+\-\s]+$/.test(userData.phone)) {
+            errors.phone = 'Format nomor telepon tidak valid';
         }
 
         setValidationErrors(errors);
         return Object.keys(errors).length === 0;
     };
 
-    // ✅ 4. SAVE PROFILE (Secure)
+    // ✅ 4. SAVE PROFILE (PUT REQUEST)
     const handleSave = async () => {
-        // Validasi form dulu
         if (!validateForm()) {
             showNotification('error', 'Mohon perbaiki input yang salah');
             return;
@@ -139,18 +131,23 @@ const UserProfileSecure = () => {
             const token = checkAuth();
             if (!token) return;
 
+            // ✅ PAYLOAD ADJUSTMENT SESUAI REQUEST
+            // Kita hanya kirim: name, address, phone_number
+            // Email tidak dikirim karena tidak boleh diedit
+            const payload = {
+                name: userData.name,
+                address: userData.address,
+                phone_number: userData.phone // Mapping state 'phone' ke key 'phone_number'
+            };
+
             const response = await fetch(`${BASE_API_URL}/profile`, {
-                method: 'PUT',
+                method: 'PUT', // Request method PUT
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`,
                     'Accept': 'application/json'
                 },
-                body: JSON.stringify({
-                    name: userData.name.trim(),
-                    phone: userData.phone.trim(),
-                    address: userData.address.trim()
-                }),
+                body: JSON.stringify(payload),
             });
 
             if (response.status === 401) {
@@ -161,22 +158,18 @@ const UserProfileSecure = () => {
             }
 
             if (!response.ok) {
+                // Coba ambil pesan error dari backend jika ada
                 const errorData = await response.json();
-                throw new Error(errorData.message || 'Gagal menyimpan profil');
+                const serverMsg = errorData.message || errorData.error || 'Gagal menyimpan profil';
+                throw new Error(serverMsg);
             }
 
-            const result = await response.json();
-
+            // Update sukses
             setIsEditing(false);
             showNotification('success', '✅ Profil berhasil diperbarui!');
 
-            // Update local data dengan response dari server
-            if (result.data) {
-                setUserData(prev => ({
-                    ...prev,
-                    ...result.data
-                }));
-            }
+            // Refresh data agar sinkron dengan backend
+            fetchUserProfile();
 
         } catch (error) {
             console.error("Save profile error:", error);
@@ -186,98 +179,19 @@ const UserProfileSecure = () => {
         }
     };
 
-    // ✅ 5. UPLOAD AVATAR (Secure)
-    const handleAvatarChange = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        // Validasi file
-        if (file.size > 2 * 1024 * 1024) {
-            showNotification('error', 'Ukuran foto maksimal 2MB');
-            return;
-        }
-
-        if (!file.type.startsWith('image/')) {
-            showNotification('error', 'File harus berupa gambar');
-            return;
-        }
-
-        setAvatarFile(file);
-
-        // Preview
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            setAvatarPreview(reader.result);
-        };
-        reader.readAsDataURL(file);
-    };
-
-    const handleUploadAvatar = async () => {
-        if (!avatarFile) return;
-
-        setIsSaving(true);
-
-        try {
-            const token = checkAuth();
-            if (!token) return;
-
-            const formData = new FormData();
-            formData.append('photo', avatarFile);
-
-            const response = await fetch(`${BASE_API_URL}/profile/photo`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Accept': 'application/json'
-                },
-                body: formData
-            });
-
-            if (response.status === 401) {
-                localStorage.removeItem('token');
-                alert('Sesi berakhir. Silakan login kembali.');
-                window.location.href = '/login';
-                return;
-            }
-
-            if (!response.ok) {
-                throw new Error('Gagal mengupload foto');
-            }
-
-            const result = await response.json();
-
-            setUserData(prev => ({
-                ...prev,
-                avatar: result.photo_url || result.data?.profile_photo
-            }));
-
-            setAvatarFile(null);
-            setAvatarPreview(null);
-            showNotification('success', '✅ Foto profil berhasil diperbarui!');
-
-        } catch (error) {
-            console.error("Upload avatar error:", error);
-            showNotification('error', `Gagal upload: ${error.message}`);
-        } finally {
-            setIsSaving(false);
-        }
-    };
-
-    // ✅ 6. LOGOUT (Secure)
+    // ✅ 5. LOGOUT
     const handleLogout = () => {
         if (window.confirm('Yakin ingin keluar?')) {
             localStorage.removeItem('token');
-            localStorage.removeItem('cart');
+            localStorage.removeItem('user');
             window.location.href = '/login';
         }
     };
 
-    // Handler untuk input change
     const handleChange = (e) => {
         const { name, value } = e.target;
         setUserData(prev => ({ ...prev, [name]: value }));
 
-        // Clear validation error untuk field ini
         if (validationErrors[name]) {
             setValidationErrors(prev => {
                 const newErrors = { ...prev };
@@ -287,14 +201,12 @@ const UserProfileSecure = () => {
         }
     };
 
-    // Helper untuk notifikasi
     const showNotification = (type, text) => {
         setToastMessage({ type, text });
         setShowToast(true);
         setTimeout(() => setShowToast(false), 4000);
     };
 
-    // Format tanggal
     const formatDate = (dateString) => {
         if (!dateString) return '-';
         return new Date(dateString).toLocaleDateString('id-ID', {
@@ -309,8 +221,7 @@ const UserProfileSecure = () => {
 
             {/* Toast Notifikasi */}
             {showToast && (
-                <div className={`fixed top-5 right-5 z-50 p-4 rounded-lg shadow-xl flex items-center gap-3 transition-all duration-300 ${toastMessage.type === 'success' ? 'bg-green-600' : 'bg-red-600'
-                    } text-white animate-slidein`}>
+                <div className={`fixed top-5 right-5 z-50 p-4 rounded-lg shadow-xl flex items-center gap-3 transition-all duration-300 ${toastMessage.type === 'success' ? 'bg-green-600' : 'bg-red-600'} text-white animate-slidein`}>
                     {toastMessage.type === 'success' ? <CheckCircle size={24} /> : <AlertTriangle size={24} />}
                     <p className="font-semibold text-sm md:text-base">{toastMessage.text}</p>
                 </div>
@@ -332,38 +243,13 @@ const UserProfileSecure = () => {
                 <div className="relative h-48 bg-gradient-to-r from-orange-600 to-orange-400 rounded-t-2xl shadow-lg">
                     <div className="absolute -bottom-16 left-1/2 transform -translate-x-1/2">
                         <div className="relative group">
+                            {/* Foto Profil Default */}
                             <img
-                                src={avatarPreview || userData.avatar || "https://placehold.co/150x150/E5964D/white?text=User"}
+                                src={"https://placehold.co/150x150/E5964D/white?text=User"}
                                 alt="Profile"
-                                className="w-32 h-32 rounded-full border-4 border-white shadow-xl object-cover"
-                                onError={(e) => {
-                                    e.target.onerror = null;
-                                    e.target.src = "https://placehold.co/150x150/E5964D/white?text=User";
-                                }}
+                                className="w-32 h-32 rounded-full border-4 border-white shadow-xl object-cover bg-white"
                             />
-
-                            {/* Tombol Upload Foto */}
-                            <label className="absolute bottom-0 right-0 bg-orange-700 text-white p-2 rounded-full hover:bg-orange-800 transition-colors shadow-md cursor-pointer">
-                                <Camera size={16} />
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={handleAvatarChange}
-                                    className="hidden"
-                                />
-                            </label>
                         </div>
-
-                        {/* Tombol Simpan Avatar Baru */}
-                        {avatarFile && (
-                            <button
-                                onClick={handleUploadAvatar}
-                                disabled={isSaving}
-                                className="mt-2 w-full bg-blue-600 hover:bg-blue-700 text-white text-xs py-1 px-3 rounded-full shadow-md transition disabled:opacity-50"
-                            >
-                                {isSaving ? 'Uploading...' : 'Upload Foto'}
-                            </button>
-                        )}
                     </div>
                 </div>
 
@@ -371,7 +257,7 @@ const UserProfileSecure = () => {
                 <div className="bg-white rounded-b-2xl shadow-lg pt-20 pb-8 px-6 md:px-12 mt-0 border-x border-b border-orange-100">
 
                     <div className="text-center mb-8">
-                        <h1 className="text-3xl font-bold text-gray-800">{userData.name || 'Nama Belum Diisi'}</h1>
+                        <h1 className="text-3xl font-bold text-gray-800">{userData.name || 'Pengguna'}</h1>
                         <p className="text-gray-500 text-sm mt-1">{userData.email}</p>
                         <p className="text-xs text-gray-400 mt-2">
                             Bergabung sejak {formatDate(userData.member_since)}
@@ -384,12 +270,12 @@ const UserProfileSecure = () => {
                             <h3 className="text-xl font-bold text-orange-800">Informasi Pribadi</h3>
                             <button
                                 onClick={() => {
-                                    setIsEditing(!isEditing);
                                     if (isEditing) {
-                                        // Reset form jika cancel
+                                        // Reset jika batal
                                         fetchUserProfile();
                                         setValidationErrors({});
                                     }
+                                    setIsEditing(!isEditing);
                                 }}
                                 className="flex items-center gap-2 text-sm text-orange-600 hover:text-orange-800 font-semibold p-1 transition-colors"
                             >
@@ -412,22 +298,22 @@ const UserProfileSecure = () => {
                                 error={validationErrors.name}
                             />
 
-                            {/* Email (Read Only) */}
+                            {/* Email (Read Only) - TIDAK DIKIRIM SAAT SAVE */}
                             <ProfileField
                                 label="Email"
                                 icon={Mail}
                                 name="email"
                                 value={userData.email}
-                                isEditing={false}
+                                isEditing={false} // Selalu false agar tidak muncul input box
                                 readOnly={true}
                                 info="Email tidak dapat diubah"
                             />
 
-                            {/* No Telepon */}
+                            {/* No Telepon (Mapping ke phone_number) */}
                             <ProfileField
                                 label="No. WhatsApp"
                                 icon={Phone}
-                                name="phone"
+                                name="phone" // State key: phone
                                 value={userData.phone}
                                 isEditing={isEditing}
                                 handleChange={handleChange}

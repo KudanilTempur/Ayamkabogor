@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, LogIn, Loader, UserCheck, ShieldAlert } from 'lucide-react'; // Tambah icon ShieldAlert
+import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
+import { Eye, EyeOff, LogIn, Loader } from 'lucide-react';
 
 // API Configuration
 const API_BASE_URL = "http://127.0.0.1:8000/api";
@@ -9,20 +9,6 @@ const LOGIN_URL = `${API_BASE_URL}/login`;
 
 // Placeholder image
 const loginImage = "https://placehold.co/600x800/2d3748/white?text=Foto+Nasi+Tumpeng";
-
-// --- 🔑 1. AKUN DUMMY USER ---
-const DUMMY_ACCOUNT = {
-    email: "demo@ayamkabogor.com",
-    password: "password123",
-    name: "Demo User"
-};
-
-// --- 🛡️ 2. AKUN DUMMY ADMIN (BARU) ---
-const ADMIN_ACCOUNT = {
-    email: "admin@ayamkabogor.com",
-    password: "admin",
-    name: "Super Admin"
-};
 
 function LoginPage() {
     const navigate = useNavigate();
@@ -49,24 +35,6 @@ function LoginPage() {
         if (error) setError('');
     };
 
-    // Fitur Cepat: Isi Form dengan Akun Demo User
-    const fillDemoAccount = () => {
-        setFormData({
-            email: DUMMY_ACCOUNT.email,
-            password: DUMMY_ACCOUNT.password
-        });
-        setError('');
-    };
-
-    // Fitur Cepat: Isi Form dengan Akun Admin (BARU)
-    const fillAdminAccount = () => {
-        setFormData({
-            email: ADMIN_ACCOUNT.email,
-            password: ADMIN_ACCOUNT.password
-        });
-        setError('');
-    };
-
     // Handle Login Submit
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -80,57 +48,6 @@ function LoginPage() {
             return;
         }
 
-        // ---------------------------------------------------------
-        // 🚀 3. MOCK LOGIN CHECK (ADMIN CHECK)
-        // ---------------------------------------------------------
-        if (formData.email === ADMIN_ACCOUNT.email && formData.password === ADMIN_ACCOUNT.password) {
-            console.log("🔥 Login sebagai ADMIN (Bypass)");
-
-            setTimeout(() => {
-                localStorage.setItem('token', 'admin-dummy-token-999');
-                localStorage.setItem('user', JSON.stringify({
-                    id: 1,
-                    name: ADMIN_ACCOUNT.name,
-                    email: ADMIN_ACCOUNT.email,
-                    role: 'admin' // <--- KUNCI UNTUK MASUK DASHBOARD
-                }));
-
-                setIsLoading(false);
-                navigate('/admin-dashboard'); // Langsung ke Dashboard
-                window.location.reload();
-            }, 1000);
-            return;
-        }
-
-        // ---------------------------------------------------------
-        // 🚀 4. MOCK LOGIN CHECK (USER CHECK)
-        // ---------------------------------------------------------
-        if (formData.email === DUMMY_ACCOUNT.email && formData.password === DUMMY_ACCOUNT.password) {
-            console.log("🔥 Login sebagai USER (Bypass)");
-
-            setTimeout(() => {
-                localStorage.setItem('token', 'dummy-token-12345xyz');
-                localStorage.setItem('user', JSON.stringify({
-                    id: 999,
-                    name: DUMMY_ACCOUNT.name,
-                    email: DUMMY_ACCOUNT.email,
-                    role: 'user' // <--- Role User Biasa
-                }));
-
-                setIsLoading(false);
-                navigate('/'); // Ke Halaman Utama
-                window.location.reload();
-            }, 1000);
-            return;
-        }
-
-        // --- JIKA BUKAN DUMMY, LANJUT KE API ---
-        if (!/\S+@\S+\.\S+/.test(formData.email)) {
-            setError('Format email tidak valid');
-            setIsLoading(false);
-            return;
-        }
-
         try {
             const response = await axios.post(LOGIN_URL, {
                 email: formData.email,
@@ -139,30 +56,44 @@ function LoginPage() {
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
             });
 
-            const data = response.data.data || response.data;
+            // ✅ AMBIL DATA SESUAI STRUKTUR JSON ANDA
+            const data = response.data;
+            const token = data.token;
+            const isAdmin = data.is_admin; // Boolean (true/false)
 
-            if (data.token) {
-                localStorage.setItem('token', data.token);
-                if (data.user) {
-                    localStorage.setItem('user', JSON.stringify(data.user));
-                }
+            if (token) {
+                // 1. Simpan Token
+                localStorage.setItem('token', token);
 
+                // 2. Simpan Remember Me
                 if (rememberMe) {
                     localStorage.setItem('remembered_email', formData.email);
                 } else {
                     localStorage.removeItem('remembered_email');
                 }
 
-                // Redirect dinamis berdasarkan role dari API (jika ada)
-                if (data.user?.role === 'admin') {
+                // 3. ✅ BUAT OBJEK USER UNTUK LOCALSTORAGE
+                // Kita ubah boolean is_admin menjadi string 'role' 
+                // agar cocok dengan logika ProtectedRoute yang sudah ada.
+                const userPayload = {
+                    name: 'User', // Placeholder karena login response tidak bawa nama (bisa ambil di /profile nanti)
+                    role: isAdmin ? 'admin' : 'user',
+                    is_admin: isAdmin
+                };
+
+                localStorage.setItem('user', JSON.stringify(userPayload));
+
+                // 4. ✅ REDIRECT SESUAI ROLE
+                if (isAdmin) {
+                    // Jika Admin -> Dashboard
                     navigate('/admin-dashboard');
                 } else {
-                    navigate('/');
+                    // Jika User -> Profile (Gunakan href agar Navbar refresh state login)
+                    window.location.href = '/profile';
                 }
-                window.location.reload();
 
             } else {
-                setError('Login gagal. Token tidak ditemukan.');
+                setError('Login berhasil, tetapi token tidak ditemukan.');
             }
 
         } catch (error) {
@@ -170,6 +101,7 @@ function LoginPage() {
             if (error.response) {
                 const status = error.response.status;
                 const message = error.response.data?.message || error.response.data?.error;
+
                 if (status === 401) setError('Email atau password salah');
                 else if (status === 422) setError(message || 'Data tidak valid');
                 else setError(message || 'Terjadi kesalahan saat login');
@@ -179,29 +111,27 @@ function LoginPage() {
                 setError('Terjadi kesalahan: ' + error.message);
             }
         } finally {
-            // Pastikan loading mati jika bukan flow dummy yang sedang berjalan
-            const isDummyUser = formData.email === DUMMY_ACCOUNT.email && formData.password === DUMMY_ACCOUNT.password;
-            const isAdminUser = formData.email === ADMIN_ACCOUNT.email && formData.password === ADMIN_ACCOUNT.password;
-
-            if (!isDummyUser && !isAdminUser) {
-                setIsLoading(false);
-            }
+            setIsLoading(false);
         }
     };
 
-    // Load remembered email
+    // Load remembered email & Redirect if already logged in
     React.useEffect(() => {
         const rememberedEmail = localStorage.getItem('remembered_email');
         if (rememberedEmail) {
             setFormData(prev => ({ ...prev, email: rememberedEmail }));
             setRememberMe(true);
         }
+
         const token = localStorage.getItem('token');
         if (token) {
-            // Opsional: Cek role user yang tersimpan untuk redirect yang tepat
-            const user = JSON.parse(localStorage.getItem('user') || '{}');
-            if (user.role === 'admin') navigate('/admin-dashboard');
-            else navigate('/');
+            // Cek role yang tersimpan
+            const userString = localStorage.getItem('user');
+            if (userString) {
+                const user = JSON.parse(userString);
+                if (user.role === 'admin') navigate('/admin-dashboard');
+                else navigate('/profile'); // Redirect ke profile jika user biasa
+            }
         }
     }, [navigate]);
 
@@ -278,7 +208,8 @@ function LoginPage() {
                                 />
                                 <span className="text-gray-600">Ingat saya</span>
                             </label>
-                            <a href="/forgot-password" className="text-orange-600 hover:underline">Lupa password?</a>
+                            {/* Ganti href dengan Link jika halaman forgot password sudah ada */}
+                            <span className="text-orange-600 hover:underline cursor-pointer">Lupa password?</span>
                         </div>
 
                         <button
@@ -293,31 +224,6 @@ function LoginPage() {
                             )}
                         </button>
                     </form>
-
-                    {/* 5. TOMBOL RAHASIA (DIPERBARUI) */}
-                    <div className="mt-6 pt-4 border-t border-dashed border-gray-300 space-y-3">
-                        <p className="text-xs text-gray-400 font-semibold">DEVELOPMENT MODE</p>
-
-                        {/* Tombol User Biasa */}
-                        <button
-                            onClick={fillDemoAccount}
-                            type="button"
-                            className="w-full py-2 px-4 rounded-lg border border-gray-300 bg-gray-50 hover:bg-gray-100 text-gray-600 text-sm font-semibold flex items-center justify-center gap-2 transition-colors"
-                        >
-                            <UserCheck size={16} />
-                            Akun Demo User
-                        </button>
-
-                        {/* Tombol Admin (BARU) */}
-                        <button
-                            onClick={fillAdminAccount}
-                            type="button"
-                            className="w-full py-2 px-4 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 text-sm font-semibold flex items-center justify-center gap-2 transition-colors"
-                        >
-                            <ShieldAlert size={16} />
-                            Akun Demo Admin
-                        </button>
-                    </div>
 
                     <div className="mt-4 text-sm text-gray-600">
                         <p>Belum punya akun? <a href="/register" className="font-bold text-orange-600 hover:underline">Daftar Disini</a></p>

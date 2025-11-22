@@ -1,30 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, MessageCircle, User, History, LogOut, ShoppingCart } from 'lucide-react';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
+import { Menu, X, User, History, LogOut, ShoppingCart } from 'lucide-react';
+import axios from 'axios';
 
-// ============================================================================
-// ⚠️ PERHATIAN UNTUK PENGGUNAAN DI LAPTOP ⚠️
-// Saat di-copy ke VS Code, LAKUKAN HAL BERIKUT:
-// 1. HAPUS bagian "MOCK DATA" di bawah ini.
-// 2. UNCOMMENT (aktifkan) bagian "REAL IMPORTS" di bawahnya.
-// ============================================================================
+// ✅ LANGKAH 1: Import useCart yang ASLI dari context
+// Pastikan path '../contexts/CartContext' sesuai dengan struktur foldermu
+import { useCart } from '../contexts/CartContext';
 
-// --- [MOCK DATA] UNTUK PREVIEW DI SINI SAJA (HAPUS BAGIAN INI DI LAPTOP) ---
-// Menggunakan URL placeholder agar tidak error di preview
-import logo from '../assets/logo-ayamkabogor.png';
-// Simulasi useCart agar tidak error di preview
-const useCart = () => ({
-    getTotalItems: () => 3, // Contoh ada 3 item
-    clearCart: () => console.log("Cart cleared")
-});
-// ---------------------------------------------------------------------------
+import logo from "../assets/logo-ayamkabogor.png";
 
-
-// --- [REAL IMPORTS] UNTUK DI LAPTOP ANDA (UNCOMMENT BAGIAN INI) ---
-// import { useCart } from '../context/CartContext';
-// import logo from '../assets/logo-ayamkabogor.png';
-// ------------------------------------------------------------------
-
+// ❌ LANGKAH 2: Kode "Simulasi useCart" (Mock Data) SUDAH DIHAPUS di sini.
+// Sekarang Navbar akan menggunakan useCart yang di-import di atas.
 
 function Navbar() {
     const navigate = useNavigate();
@@ -32,66 +18,60 @@ function Navbar() {
 
     const [isOpen, setIsOpen] = useState(false);
     const [isProfileOpen, setIsProfileOpen] = useState(false);
-
-    // ✅ Check login status dari localStorage
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [userName, setUserName] = useState('');
 
-    // ✅ Ambil total items dari CartContext
-    const { getTotalItems, clearCart } = useCart();
+    // ✅ LANGKAH 3: Panggil fungsi asli
+    // Karena mock data sudah dihapus, getTotalItems() sekarang mengambil data real dari CartContext
+    const { getTotalItems } = useCart();
     const totalItems = getTotalItems();
 
     const isAdminPage = location.pathname.startsWith('/admin');
 
-    // ✅ Check login status saat component mount
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        const user = localStorage.getItem('user');
+        const fetchUserProfile = async () => {
+            const token = localStorage.getItem('token');
 
-        if (token) {
-            setIsLoggedIn(true);
+            if (!token) {
+                setIsLoggedIn(false);
+                return;
+            }
 
-            // Ambil nama user dari localStorage
-            if (user) {
-                try {
-                    const userData = JSON.parse(user);
-                    setUserName(userData.name || 'Pelanggan');
-                } catch (error) {
+            try {
+                const response = await axios.get('http://127.0.0.1:8000/api/profile', {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                setIsLoggedIn(true);
+                const userData = response.data;
+
+                if (userData && userData.name) {
+                    setUserName(userData.name);
+                } else {
                     setUserName('Pelanggan');
                 }
-            } else {
-                setUserName('Pelanggan');
+
+            } catch (error) {
+                console.error("Gagal mengambil profil:", error);
+                setIsLoggedIn(false);
+                setUserName('');
             }
-        } else {
-            setIsLoggedIn(false);
-        }
+        };
+
+        fetchUserProfile();
     }, []);
 
     const toggleMenu = () => setIsOpen(!isOpen);
     const toggleProfile = () => setIsProfileOpen(!isProfileOpen);
 
-    // ✅ FUNGSI LOGOUT YANG BENAR
     const handleLogout = () => {
-        // Konfirmasi sebelum logout
         if (window.confirm('Yakin ingin keluar dari akun?')) {
-            // 1. Hapus token
             localStorage.removeItem('token');
-
-            // 2. Hapus user data
             localStorage.removeItem('user');
-
-            // 3. Clear cart (optional - tergantung UX yang diinginkan)
-            // clearCart(); // Uncomment jika ingin hapus keranjang saat logout
-
-            // 4. Update state
             setIsLoggedIn(false);
             setUserName('');
-
-            // 5. Close dropdown
             setIsProfileOpen(false);
-
-            // 6. Redirect ke login
-            navigate('/login');
+            navigate('/');
         }
     };
 
@@ -125,42 +105,31 @@ function Navbar() {
 
                             {/* Logo */}
                             <div>
-                                <a href="/">
+                                <Link to="/">
                                     <img src={logo} alt="Logo Ayam Kabogor" className="h-10 object-contain" />
-                                </a>
+                                </Link>
                             </div>
 
                             {/* Area Kanan */}
                             <div className="flex items-center gap-2">
 
-                                {/* ✅ ICON KERANJANG (TOP BAR) - HILANG JIKA BELUM LOGIN */}
+                                {/* ✅ ICON KERANJANG (Counter akan otomatis berubah) */}
                                 {isLoggedIn && (
-                                    <a
-                                        href="/keranjang"
+                                    <Link
+                                        to="/keranjang"
                                         className="relative p-1 rounded-full hover:bg-black/10 transition-all"
                                         aria-label="Keranjang Belanja"
                                     >
                                         <ShoppingCart size={24} />
 
-                                        {/* Badge Notifikasi */}
+                                        {/* Logika Tampilan Notifikasi */}
                                         {totalItems > 0 && (
                                             <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-md animate-pulse">
                                                 {totalItems > 99 ? '99+' : totalItems}
                                             </span>
                                         )}
-                                    </a>
+                                    </Link>
                                 )}
-
-                                {/* Ikon WA */}
-                                <a
-                                    href="https://wa.me/628123456789"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="p-1 rounded-full hover:bg-black/10 transition-all"
-                                    aria-label="WhatsApp"
-                                >
-                                    <MessageCircle size={26} />
-                                </a>
 
                                 {/* Fitur Profile */}
                                 {isLoggedIn ? (
@@ -176,34 +145,31 @@ function Navbar() {
                                         {isProfileOpen && (
                                             <div className="absolute top-full right-0 mt-3 w-48 bg-white rounded-xl shadow-xl text-gray-800 py-2 border border-orange-100 animate-in fade-in slide-in-from-top-2 z-50">
 
-                                                {/* User Info */}
                                                 <div className="px-4 py-2 border-b border-gray-100 mb-1">
                                                     <p className="text-xs text-gray-400">Halo,</p>
                                                     <p className="font-bold text-orange-600 truncate">{userName}</p>
                                                 </div>
 
-                                                {/* Menu Items */}
-                                                <a
-                                                    href="/profile"
+                                                <Link
+                                                    to="/profile"
                                                     className="flex items-center px-4 py-2 hover:bg-orange-50 text-sm gap-3 transition-colors"
                                                     onClick={() => setIsProfileOpen(false)}
                                                 >
                                                     <User className="text-gray-400" size={14} />
                                                     Profile Saya
-                                                </a>
+                                                </Link>
 
-                                                <a
-                                                    href="/riwayat-pesanan"
+                                                <Link
+                                                    to="/riwayat-pesanan"
                                                     className="flex items-center px-4 py-2 hover:bg-orange-50 text-sm gap-3 transition-colors"
                                                     onClick={() => setIsProfileOpen(false)}
                                                 >
                                                     <History className="text-gray-400" size={14} />
                                                     Riwayat Order
-                                                </a>
+                                                </Link>
 
                                                 <div className="border-t border-gray-100 my-1"></div>
 
-                                                {/* Tombol Logout */}
                                                 <button
                                                     onClick={handleLogout}
                                                     className="w-full flex items-center px-4 py-2 hover:bg-red-50 text-red-600 text-sm gap-3 text-left transition-colors"
@@ -215,12 +181,12 @@ function Navbar() {
                                         )}
                                     </div>
                                 ) : (
-                                    <a
-                                        href="/login"
+                                    <Link
+                                        to="/login"
                                         className="text-[10px] sm:text-xs bg-white text-orange-600 px-3 py-1 rounded-full font-bold hover:bg-gray-100 transition-colors shadow-sm"
                                     >
                                         LOGIN
-                                    </a>
+                                    </Link>
                                 )}
 
                             </div>
@@ -242,7 +208,7 @@ function Navbar() {
                 </nav>
             )}
 
-            {/* MENU DROPDOWN (BAGIAN KE BAWAH) */}
+            {/* MENU DROPDOWN MOBILE */}
             <div
                 className={`
                     absolute w-11/12 sm:w-9/12 md:w-7/12 lg:w-4/12 xl:max-w-lg 2xl:max-w-2xl max-w-6xl left-1/2 -translate-x-1/2 bg-gradient-to-b from-orange-400 to-orange-500 shadow-lg 
@@ -251,15 +217,13 @@ function Navbar() {
                 `}
             >
                 <ul className="flex flex-col items-center text-center space-y-4 tracking-wider">
-                    <li><a href="/" onClick={toggleMenu} className="block py-3 px-6 border-b border-white/30 w-60 hover:bg-black/10 rounded-md">01 HOME</a></li>
-                    <li><a href="/about" onClick={toggleMenu} className="block py-3 px-6 border-b border-white/30 w-60 hover:bg-black/10 rounded-md">02 ABOUT US</a></li>
-                    <li><a href="/menu-lengkap" onClick={toggleMenu} className="block py-3 px-6 border-b border-white/30 w-60 hover:bg-black/10 rounded-md">03 PRICELIST & MENU</a></li>
-                    <li><a href="/ulasan" onClick={toggleMenu} className="block py-3 px-6 border-b border-white/30 w-60 hover:bg-black/10 rounded-md">04 ULASAN</a></li>
-                    {/* Item Keranjang dihapus dari sini */}
-                    <li><a href="/FAQ" onClick={toggleMenu} className="block py-3 px-6 w-60 hover:bg-black/10 rounded-md">05 FAQ</a></li>
+                    <li><Link to="/" onClick={toggleMenu} className="block py-3 px-6 border-b border-white/30 w-60 hover:bg-black/10 rounded-md">01 HOME</Link></li>
+                    <li><Link to="/about" onClick={toggleMenu} className="block py-3 px-6 border-b border-white/30 w-60 hover:bg-black/10 rounded-md">02 ABOUT US</Link></li>
+                    <li><Link to="/menu-lengkap" onClick={toggleMenu} className="block py-3 px-6 border-b border-white/30 w-60 hover:bg-black/10 rounded-md">03 PRICELIST & MENU</Link></li>
+                    <li><Link to="/ulasan" onClick={toggleMenu} className="block py-3 px-6 border-b border-white/30 w-60 hover:bg-black/10 rounded-md">04 ULASAN</Link></li>
+                    <li><Link to="/FAQ" onClick={toggleMenu} className="block py-3 px-6 w-60 hover:bg-black/10 rounded-md">05 FAQ</Link></li>
                 </ul>
 
-                {/* TOMBOL PESAN (MOBILE) */}
                 {!isAdminPage && (
                     <a
                         href="https://wa.me/628123456789"

@@ -52,10 +52,7 @@ const MenuHariIni = () => {
                                 rahasia kami. 100% Halal, rasa otentik, dijamin bikin nagih!
                             </p>
 
-                            {/* CTA Button */}
-                            <button className="bg-gradient-to-r from-yellow-300 to-yellow-600 text-orange-900 font-bold text-xl px-8 py-4 rounded-full shadow-lg hover:from-yellow-300 hover:to-yellow-400 transition-all transform hover:scale-105">
-                                Pesan Sekarang!
-                            </button>
+
                         </div>
 
                     </div>

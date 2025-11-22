@@ -17,7 +17,6 @@ function Ulasan() {
         <main>
             <HeroSection />
             <KataMereka />
-            <UlasanPelanggan />
             <TulisUlasan />
 
 

@@ -1,65 +1,98 @@
-import React from "react";
-import {
-    LayoutDashboard,
-    Utensils,
-    MessageSquare,
-    ShoppingBag,
-    Users,
-    LogOut
-} from 'lucide-react';
+import React from 'react';
+import { LayoutDashboard, Coffee, ShoppingBag, Star, Users, LogOut, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
-export default function Sidebar({ activeTab, setActiveTab, handleLogout, isSidebarOpen }) {
+import logo from "../../assets/logo-ayamkabogor.png";
+
+export default function AdminSidebar({ isSidebarOpen, setIsSidebarOpen, activeTab, setActiveTab }) {
+    const navigate = useNavigate();
+
+    // Fungsi Logout Internal
+    const handleLogout = () => {
+        if (window.confirm('Yakin ingin keluar dari Panel Admin?')) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            navigate('/login'); // Redirect ke halaman login
+        }
+    };
+
+    // Daftar Menu Navigasi
     const menuItems = [
-        { tab: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={20} /> },
-        { tab: 'menu', label: 'Kelola Produk', icon: <Utensils size={20} /> },
-        { tab: 'reviews', label: 'Ulasan', icon: <MessageSquare size={20} /> },
-        { tab: 'orders', label: 'Pesanan', icon: <ShoppingBag size={20} /> },
-        { tab: 'customers', label: 'Pelanggan', icon: <Users size={20} /> },
+        { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+        { id: 'menu', label: 'Manajemen Menu', icon: Coffee },
+        { id: 'orders', label: 'Pesanan Masuk', icon: ShoppingBag },
+        { id: 'reviews', label: 'Ulasan', icon: Star },
+        { id: 'customers', label: 'Pelanggan', icon: Users },
     ];
 
     return (
-        <aside
-            className={`
-                bg-gray-900 text-white z-30 shadow-xl
-                fixed inset-y-0 left-0
-                transform transition-transform duration-300
-                ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-                md:translate-x-0 md:static
-                w-64 h-screen flex flex-col
-            `}
-        >
-            <div className="h-16 flex items-center justify-center border-b border-gray-800">
-                <h1 className="font-bold text-xl text-orange-500">ADMIN CMS</h1>
-            </div>
+        <>
+            {/* Overlay Gelap untuk Mobile */}
+            {isSidebarOpen && (
+                <div
+                    className="fixed inset-0 bg-black/50 z-20 md:hidden"
+                    onClick={() => setIsSidebarOpen(false)}
+                />
+            )}
 
-            <nav className="flex-1 overflow-y-auto p-3 space-y-2">
-                {menuItems.map(item => (
-                    <div
-                        key={item.tab}
-                        onClick={() => setActiveTab(item.tab)}
-                        className={`
-                            flex items-center cursor-pointer px-3 py-3 rounded-xl
-                            transition-all duration-200
-                            ${activeTab === item.tab
-                                ? 'bg-orange-600 text-white shadow-md'
-                                : 'text-gray-400 hover:bg-gray-800 hover:text-white'}
-                        `}
+            {/* Container Sidebar */}
+            <aside className={`
+                fixed md:static inset-y-0 left-0 z-30
+                w-64 bg-gray-900 border-r border-gray-200 
+                transform transition-transform duration-300 ease-in-out
+                flex flex-col
+                ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+            `}>
+                {/* Header Sidebar */}
+                <div className="h-16 flex items-center justify-center px-6 border-b border-gray-900">
+                    <img src={logo} alt="Logo Ayam Kabogor" className="h-10 object-contain" />
+                    <button
+                        onClick={() => setIsSidebarOpen(false)}
+                        className="md:hidden text-white-500 hover:text-red-500"
                     >
-                        {item.icon}
-                        <span className="ml-3 font-medium">{item.label}</span>
-                    </div>
-                ))}
-            </nav>
+                        <X size={24} />
+                    </button>
+                </div>
 
-            <div className="p-3 border-t border-gray-800">
-                <button
-                    onClick={handleLogout}
-                    className="flex items-center w-full px-3 py-2 rounded hover:bg-gray-800 text-red-400"
-                >
-                    <LogOut size={20} />
-                    <span className="ml-3">Logout</span>
-                </button>
-            </div>
-        </aside>
+                {/* List Menu */}
+                <nav className="flex-1 overflow-y-auto p-4 space-y-1">
+                    {menuItems.map((item) => {
+                        const Icon = item.icon;
+                        const isActive = activeTab === item.id;
+
+                        return (
+                            <button
+                                key={item.id}
+                                onClick={() => {
+                                    setActiveTab(item.id);
+                                    // Opsional: Tutup sidebar otomatis di mobile saat menu diklik
+                                    // setIsSidebarOpen(false); 
+                                }}
+                                className={`
+                                    w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors
+                                    ${isActive
+                                        ? 'bg-orange-50 text-orange-600'
+                                        : 'text-gray-100 hover:bg-gray-50 hover:text-gray-600'}
+                                `}
+                            >
+                                <Icon size={20} />
+                                {item.label}
+                            </button>
+                        );
+                    })}
+                </nav>
+
+                {/* Tombol Logout di Bawah */}
+                <div className="p-4 border-t border-gray-900">
+                    <button
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+                    >
+                        <LogOut size={20} />
+                        Keluar
+                    </button>
+                </div>
+            </aside>
+        </>
     );
 }
