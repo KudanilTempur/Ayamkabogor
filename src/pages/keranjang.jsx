@@ -2,7 +2,7 @@ import React from 'react';
 import { FaTrash, FaPlus, FaMinus, FaWhatsapp } from 'react-icons/fa';
 
 // ✅ Import CartContext
-import { useCart } from '../context/CartContext';
+import { useCart } from '../contexts/CartContext';
 
 const Keranjang_belanja = () => {
     // ✅ Ambil data dan fungsi dari CartContext
