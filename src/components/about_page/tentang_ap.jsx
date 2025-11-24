@@ -34,13 +34,13 @@ const TentangAp = () => {
                     </h2>
 
                     {/* Paragraf 1 (Lorem Ipsum Sesuai Gambar) */}
-                    <p className="text-[#7C2D12] text-lg md:text-xl leading-relaxed mb-6 font-medium text-justify opacity-90">
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                    <p className="text-[#7C2D12] text-lg md:text-xl leading-relaxed mb-6 font-poppins text-justify opacity-90">
+                        AYAM KABOGOR adalah spesialisasi catering yang bangga menyajikan hidangan lezat Ayam Kampung dan Bebek dengan cita rasa otentik yang khas dari Bogor. Kami memprioritaskan kualitas dengan memilih Ayam Kampung yang gurih dan Bebek yang empuk, diolah menggunakan rempah-rempah pilihan yang diracik khusus.
                     </p>
 
                     {/* Paragraf 2 (Lorem Ipsum Sesuai Gambar) */}
-                    <p className="text-[#7C2D12] text-lg md:text-xl leading-relaxed font-medium text-justify opacity-90">
-                        Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+                    <p className="text-[#7C2D12] text-lg md:text-xl leading-relaxed  font-poppins text-justify opacity-90">
+                        Proses ungkep yang lama dan bumbu rempah asli Nusantara yang meresap sempurna adalah kunci keunggulan kami. Komitmen kami adalah menghadirkan makanan yang tidak hanya lezat, tetapi juga membawa kenangan rasa masakan rumahan kampung yang tak terlupakan.
                     </p>
 
                 </div>

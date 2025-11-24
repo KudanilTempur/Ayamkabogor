@@ -232,4 +232,4 @@ export default function ReviewsView() {
             </div>
         </div>
     );
-}
+}   

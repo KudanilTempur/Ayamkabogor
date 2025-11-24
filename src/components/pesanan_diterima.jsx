@@ -30,7 +30,7 @@ const PesananDiterima = () => {
                     {/* Stat 1 */}
                     <div className="flex flex-col items-center text-center">
                         <h3 className="text-4xl md:text-5xl lg:text-6xl font-bold text-black ">
-                            100+
+                            67
                         </h3>
                         <p className="mt-2 text-base md:text-lg lg:text-xl text-black">
                             Pesanan Diterima
@@ -43,10 +43,10 @@ const PesananDiterima = () => {
                     {/* Stat 2 */}
                     <div className="flex flex-col items-center text-center">
                         <h3 className="text-4xl md:text-5xl lg:text-6xl font-bold text-black">
-                            100+
+                            30
                         </h3>
                         <p className="mt-2 text-base md:text-lg lg:text-xl text-black">
-                            Pesanan Diterima
+                            User
                         </p>
                     </div>
 
@@ -56,25 +56,15 @@ const PesananDiterima = () => {
                     {/* Stat 3 */}
                     <div className="flex flex-col items-center text-center">
                         <h3 className="text-4xl md:text-5xl lg:text-6xl font-bold text-black">
-                            100+
+                            40
                         </h3>
                         <p className="mt-2 text-base md:text-lg lg:text-xl text-black">
-                            Pesanan Diterima
+                            menu
                         </p>
                     </div>
 
-                    {/* Divider */}
-                    <div className="hidden md:block w-px h-20 bg-orange-700"></div>
 
-                    {/* Stat 4 */}
-                    <div className="flex flex-col items-center text-center">
-                        <h3 className="text-4xl md:text-5xl lg:text-6xl font-bold text-black">
-                            100+
-                        </h3>
-                        <p className="mt-2 text-base md:text-lg lg:text-xl text-black">
-                            Pesanan Diterima
-                        </p>
-                    </div>
+
 
                 </div>
             </div>

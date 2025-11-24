@@ -38,7 +38,7 @@ export default function AdminSidebar({ isSidebarOpen, setIsSidebarOpen, activeTa
             {/* Container Sidebar */}
             <aside className={`
                 fixed md:static inset-y-0 left-0 z-30
-                w-64 bg-gray-900 border-r border-gray-200 
+                w-64 bg-orange-500 md:w-50 border-r border-gray-200 
                 transform transition-transform duration-300 ease-in-out
                 flex flex-col
                 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
@@ -83,10 +83,10 @@ export default function AdminSidebar({ isSidebarOpen, setIsSidebarOpen, activeTa
                 </nav>
 
                 {/* Tombol Logout di Bawah */}
-                <div className="p-4 border-t border-gray-900">
+                <div className="p-4   bg-orange-500">
                     <button
                         onClick={handleLogout}
-                        className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+                        className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm  font-medium  text-red-700 hover:bg-red-100 transition-colors"
                     >
                         <LogOut size={20} />
                         Keluar

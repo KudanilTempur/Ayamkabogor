@@ -22,10 +22,10 @@ const PesananDiterima2 = () => {
                     {/* Stat 1 */}
                     <div className="flex flex-col items-center text-center">
                         {/* WARNA TEXT DISESUAIKAN AGAR LEBIH KONTRAST DI BACKGROUND ORANYE BARU */}
-                        <h3 className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#7C2D12] drop-shadow-lg">
-                            100+
+                        <h3 className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#7C2D12] ">
+                            67
                         </h3>
-                        <p className="mt-2 text-base md:text-lg lg:text-xl text-[#7C2D12] opacity-90 font-bold drop-shadow-md">
+                        <p className="mt-2 text-base md:text-lg lg:text-xl text-[#7C2D12] opacity-90 font-bold">
                             Pesanan Diterima
                         </p>
                     </div>
@@ -37,11 +37,11 @@ const PesananDiterima2 = () => {
                     {/* Stat 1 */}
                     <div className="flex flex-col items-center text-center">
                         {/* WARNA TEXT DISESUAIKAN AGAR LEBIH KONTRAST DI BACKGROUND ORANYE BARU */}
-                        <h3 className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#7C2D12] drop-shadow-lg">
-                            100+
+                        <h3 className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#7C2D12]">
+                            40
                         </h3>
-                        <p className="mt-2 text-base md:text-lg lg:text-xl text-[#7C2D12] opacity-90 font-bold drop-shadow-md">
-                            Pesanan Diterima
+                        <p className="mt-2 text-base md:text-lg lg:text-xl text-[#7C2D12] opacity-90 font-bold">
+                            menu
                         </p>
                     </div>
 
@@ -52,26 +52,11 @@ const PesananDiterima2 = () => {
                     {/* Stat 1 */}
                     <div className="flex flex-col items-center text-center">
                         {/* WARNA TEXT DISESUAIKAN AGAR LEBIH KONTRAST DI BACKGROUND ORANYE BARU */}
-                        <h3 className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#7C2D12] drop-shadow-lg">
-                            100+
+                        <h3 className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#7C2D12]">
+                            30
                         </h3>
-                        <p className="mt-2 text-base md:text-lg lg:text-xl text-[#7C2D12] opacity-90 font-bold drop-shadow-md">
-                            Pesanan Diterima
-                        </p>
-                    </div>
-
-                    {/* Divider */}
-                    {/* WARNA DIVIDER DISESUAIKAN */}
-                    <div className="hidden md:block w-px h-20 bg-[#7C2D12] opacity-70"></div>
-
-                    {/* Stat 1 */}
-                    <div className="flex flex-col items-center text-center">
-                        {/* WARNA TEXT DISESUAIKAN AGAR LEBIH KONTRAST DI BACKGROUND ORANYE BARU */}
-                        <h3 className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#7C2D12] drop-shadow-lg">
-                            100+
-                        </h3>
-                        <p className="mt-2 text-base md:text-lg lg:text-xl text-[#7C2D12] opacity-90 font-bold drop-shadow-md">
-                            Pesanan Diterima
+                        <p className="mt-2 text-base md:text-lg lg:text-xl text-[#7C2D12] opacity-90 font-bold">
+                            User
                         </p>
                     </div>
 

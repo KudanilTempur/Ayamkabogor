@@ -5,7 +5,7 @@ import axions from 'axios';
 
 // Gunakan gambar yang sama atau beda dengan login, bebas.
 // Untuk preview saya pakai placeholder. Di laptop, ganti dengan import gambar lokalmu.
-const registerImage = "https://placehold.co/600x800/orange/white?text=Gabung+Sekarang";
+import registerImage from "../assets/ayam-kampung-bakar-kecap.jpeg";
 const API_BASE = "http://127.0.0.1:8000/api"
 const RegisterPage = () => {
     const navigate = useNavigate();
@@ -137,12 +137,9 @@ const RegisterPage = () => {
                 <img
                     src={registerImage}
                     alt="Register Ayam Kabogor"
-                    className="object-cover w-full h-full"
+                    className="object-cover w-full "
                 />
-                <div className="absolute z-20 bottom-20 left-10 text-white">
-                    <h1 className="text-4xl font-bold mb-2 drop-shadow-md">Selamat Datang!</h1>
-                    <p className="text-lg drop-shadow-sm">Dapatkan promo menarik khusus member baru.</p>
-                </div>
+
             </div>
 
         </div>

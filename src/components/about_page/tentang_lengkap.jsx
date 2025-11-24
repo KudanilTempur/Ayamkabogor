@@ -33,11 +33,11 @@ const TentangKami = () => {
 
                     {/* KIRI: TEKS */}
                     <div className="text-left order-2 md:order-1">
-                        <p className="text-yellow-50 text-lg md:text-xl leading-relaxed mb-6 font-normal text-justify">
-                            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                        <p className="text-yellow-50 text-lg md:text-xl leading-relaxed mb-6 font-poppins text-justify">
+                            AYAM KABOGOR adalah spesialisasi catering yang bangga menyajikan hidangan lezat Ayam Kampung dan Bebek dengan cita rasa otentik yang khas dari Bogor. Kami memprioritaskan kualitas dengan memilih Ayam Kampung yang gurih dan Bebek yang empuk, diolah menggunakan rempah-rempah pilihan yang diracik khusus.
                         </p>
-                        <p className="text-yellow-50 text-lg md:text-xl leading-relaxed font-normal text-justify">
-                            Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+                        <p className="text-yellow-50 text-lg md:text-xl leading-relaxed font-poppins text-justify">
+                            Setiap potong Ayam Kampung dipilih dengan cermat untuk memastikan kualitas dan tekstur terbaik. Proses pembakaran dilakukan dengan sempurna, menghasilkan aroma asap yang khas dan daging yang sangat lembut.
                         </p>
                     </div>
 
@@ -76,12 +76,10 @@ const TentangKami = () => {
 
                     {/* KANAN: TEKS */}
                     <div className="text-left order-2">
-                        <p className="text-yellow-50 text-lg md:text-xl leading-relaxed mb-6 font-normal text-justify">
-                            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                        <p className="text-yellow-50 text-lg md:text-xl leading-relaxed mb-6 font-poppins text-justify">
+                            Komitmen kami pada kualitas dapat Anda rasakan salah satunya pada menu Ayam Goreng Kremes kami yang legendaris. Proses pengungkepan yang lama menjamin daging empuk, kemudian digoreng hingga menghasilkan kremesan yang renyah dan gurih. AYAM KABOGOR selalu berdedikasi untuk menghadirkan hidangan terbaik dan menjadi solusi catering terpercaya untuk setiap acara Anda.
                         </p>
-                        <p className="text-yellow-50 text-lg md:text-xl leading-relaxed font-normal text-justify">
-                            Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
-                        </p>
+
                     </div>
 
                 </div>

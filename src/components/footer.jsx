@@ -9,13 +9,8 @@ const Footer = ({ view }) => {
     if (isAdminPage) return null;
 
     return (
-        <footer className="relative w-full bg-white mt-20">
-            {/* ORNAMEN GELOMBANG */}
-            <div className="absolute top-0 left-0 w-full overflow-hidden -translate-y-full leading-[0]">
-                <svg className="relative block w-[calc(100%+1.3px)] h-[50px] md:h-[100px]" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
-                    <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" className="fill-orange-700"></path>
-                </svg>
-            </div>
+        <footer className="relative w-full bg-orange-700 ">
+
 
             {/* KONTEN UTAMA */}
             <div className="bg-gradient-to-br from-orange-700 via-orange-600 to-orange-800 text-orange-50 pt-10 pb-8 px-6 md:px-12">
@@ -31,7 +26,7 @@ const Footer = ({ view }) => {
                         </p>
                         <div className="flex items-start justify-center md:justify-start space-x-3 mt-4 opacity-90">
                             <MapPin className="w-5 h-5 mt-1 flex-shrink-0 text-yellow-400" />
-                            <span className="text-sm">Jl. Raya Bogor KM 42, Cibinong, <br />Bogor, Jawa Barat 16911</span>
+                            <span className="text-sm">jalan Atang Sanjaya KM. 2, Bantarsari, Rancabungur Bogor,  Bogor, Indonesia 16310</span>
                         </div>
                     </div>
 
@@ -48,15 +43,21 @@ const Footer = ({ view }) => {
                         */}
                         <ul className="space-y-3 w-fit flex flex-col">
                             {['Beranda', 'Tentang Kami', 'Menu & Harga', 'Ulasan Pelanggan'].map((name, idx) => (
-                                <li key={idx} className="w-full">
-                                    {/* BUTTON ALIGN LEFT:
-                                       Hapus 'justify-center', ganti jadi default (start) atau 'text-left'
-                                    */}
-                                    <button className="group flex items-center text-left hover:text-yellow-300 transition-colors duration-300">
-                                        {/* Chevron tetap di kiri teks */}
+                                <li key={idx} className="w-full hover:text-yellow-300">
+                                    {/* 💡 SOLUSI: GANTI <button> DENGAN <a> DAN TAMBAHKAN href */}
+                                    <a
+                                        href={
+                                            name === 'Beranda' ? '/' : // Contoh: Beranda ke root
+                                                name === 'Tentang Kami' ? '/about' : // Contoh: Tentang Kami ke /tentang
+                                                    name === 'Menu & Harga' ? '/menu-lengkap' : // Contoh: Menu & Harga ke /menu
+                                                        name === 'ulasan pelanggan' ? '/ulasan' : // Contoh: Menu & Harga ke /menu
+                                                            '#' // Fallback jika tidak ada halaman
+                                        }
+                                        className="group flex items-center text-left hover:text-yellow-300 transition-colors duration-300"
+                                    >
                                         <ChevronRight className="w-4 h-4 mr-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                                         {name}
-                                    </button>
+                                    </a>
                                 </li>
                             ))}
                         </ul>
@@ -66,8 +67,8 @@ const Footer = ({ view }) => {
                     <div className="flex flex-col items-center md:items-end text-center md:text-right">
                         <h3 className="text-xl font-bold text-white mb-6 tracking-wide border-b-2 border-yellow-400 pb-1 inline-block">Hubungi Kami</h3>
                         <div className="space-y-4 mb-8 w-full flex flex-col items-center md:items-end">
-                            <a href="https://wa.me/628123456789" className="flex items-center space-x-3 hover:text-yellow-300 transition-colors">
-                                <span className="text-lg font-semibold">+62 812-3456-7890</span>
+                            <a href="https://wa.me/6285179778270" className="flex items-center space-x-3 hover:text-yellow-300 transition-colors">
+                                <span className="text-lg font-semibold">+62 851-7977-8270</span>
                                 <Phone className="w-5 h-5" />
                             </a>
                             <a href="mailto:ayamkabogor@gmail.com" className="flex items-center space-x-3 hover:text-yellow-300 transition-colors">
@@ -76,17 +77,18 @@ const Footer = ({ view }) => {
                             </a>
                         </div>
                         <div className="flex space-x-4">
-                            <a href="#" className="bg-white/10 hover:bg-white/30 p-3 rounded-full transition-all duration-300 hover:scale-110 border border-white/20"><Instagram className="w-5 h-5 text-white" /></a>
-                            <a href="#" className="bg-white/10 hover:bg-white/30 p-3 rounded-full transition-all duration-300 hover:scale-110 border border-white/20"><Facebook className="w-5 h-5 text-white" /></a>
+                            <a href="https://www.instagram.com/ayam_kabogor" className="bg-white/10 hover:bg-white/30 p-3 rounded-full transition-all duration-300 hover:scale-110 border border-white/20"><Instagram className="w-5 h-5 text-white" /></a>
+                            <a href="https://www.facebook.com/share/v/1C33F3uYdi/" className="bg-white/10 hover:bg-white/30 p-3 rounded-full transition-all duration-300 hover:scale-110 border border-white/20"><Facebook className="w-5 h-5 text-white" /></a>
                         </div>
                     </div>
+                </div>
+                <div className="text-center  pt-16 ">
+                    <p>&copy; {currentYear} <span className="text-orange-100 font-bold">Ayam Kabogor</span>. All Rights Reserved.</p>
                 </div>
             </div>
 
             {/* COPYRIGHT */}
-            <div className="bg-orange-900 text-orange-200/60 py-4 text-center text-xs md:text-sm border-t border-orange-800">
-                <p>&copy; {currentYear} <span className="text-orange-100 font-bold">Ayam Kabogor</span>. All Rights Reserved.</p>
-            </div>
+
         </footer>
     );
 };

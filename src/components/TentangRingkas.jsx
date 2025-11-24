@@ -45,20 +45,20 @@ const TentangRingkas = () => {
 
                         {/* Paragraf 1: Ukuran teks disesuaikan untuk mobile/desktop */}
                         <div className="
-                        text-lg md:text-xl font-normal 
+                        text-lg md:text-xl  font-poppins
                         text-left leading-relaxed
-                        text-gray-700 /* Tambahkan warna teks agar terlihat */
+                        text-gray-700 
                     ">
-                            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.
+                            AYAM KABOGOR adalah spesialisasi catering yang bangga menyajikan hidangan lezat Ayam Kampung dan Bebek dengan cita rasa otentik yang khas dari Bogor. Kami memprioritaskan kualitas dengan memilih Ayam Kampung yang gurih dan Bebek yang empuk, diolah menggunakan rempah-rempah pilihan yang diracik khusus.
                         </div>
 
                         {/* Paragraf 2: Ukuran teks disesuaikan untuk mobile/desktop */}
                         <div className="
-                        text-lg md:text-xl font-normal 
+                        text-lg md:text-xl font-poppins 
                         text-left leading-relaxed
                         text-gray-700 /* Tambahkan warna teks agar terlihat */
                     ">
-                            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.
+                            Proses ungkep yang lama dan bumbu rempah asli Nusantara yang meresap sempurna adalah kunci keunggulan kami. Komitmen kami adalah menghadirkan makanan yang tidak hanya lezat, tetapi juga membawa kenangan rasa masakan rumahan kampung yang tak terlupakan.
                         </div>
                     </div>
                 </div>

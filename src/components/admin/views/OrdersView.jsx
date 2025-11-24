@@ -23,13 +23,14 @@ export default function OrdersView() {
     const [isEditingMode, setIsEditingMode] = useState(false); // State untuk mode edit produk
     const [editFormData, setEditFormData] = useState([]); // State sementara untuk edit produk
 
-    // URL Gambar
+    // URL Gambar (Sesuaikan dengan path storage Laravel kamu)
     const STORAGE_URL = "http://127.0.0.1:8000/storage/";
 
     // --- 1. FETCH DATA ORDERS ---
     const fetchOrders = async () => {
         const token = localStorage.getItem('token');
         if (!token) {
+            // Jika tidak ada token, bisa redirect ke login atau set loading false
             setIsLoading(false);
             return;
         }
@@ -40,6 +41,7 @@ export default function OrdersView() {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
+            // Akses key "Orders" sesuai response JSON kamu
             const data = response.data.Orders || [];
             setOrders(data);
             setFilteredOrders(data);
@@ -47,6 +49,7 @@ export default function OrdersView() {
         } catch (error) {
             console.error("Gagal mengambil data pesanan:", error);
             if (error.response && error.response.status === 401) {
+                // Token expired atau invalid
                 localStorage.removeItem('token');
                 window.location.href = '/login';
             }
@@ -63,15 +66,17 @@ export default function OrdersView() {
     useEffect(() => {
         let result = orders;
 
+        // Filter Status
         if (statusFilter !== "all") {
             result = result.filter(o => o.status === statusFilter);
         }
 
+        // Filter Search (ID Order atau Nama User)
         if (searchTerm) {
             const term = searchTerm.toLowerCase();
             result = result.filter(o =>
                 o.id.toString().includes(term) ||
-                o.user_id.toString().includes(term)
+                (o.user?.name || "").toLowerCase().includes(term) // Search berdasarkan nama user
             );
         }
 
@@ -85,24 +90,25 @@ export default function OrdersView() {
         const token = localStorage.getItem('token');
         setIsDetailLoading(true);
         setIsEditingMode(false); // Reset edit mode saat buka baru
-        setSelectedOrder({ id: orderId });
+        setSelectedOrder({ id: orderId }); // Placeholder ID saat loading
 
         try {
             const response = await axios.get(`http://127.0.0.1:8000/api/order/${orderId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
+            // Handle response detail yang mungkin berbeda key (order vs Order)
             const detail = response.data.order || response.data.Order;
             setSelectedOrder(detail);
 
             // Siapkan data untuk form edit (jika nanti mau diedit)
             if (detail && detail.products) {
                 const initialEditData = detail.products.map(p => ({
-                    product_id: p.id, // ID Produk
+                    product_id: p.id,
                     product_name: p.product_name,
                     product_price: p.product_price,
                     product_url_image: p.product_url_image,
-                    quantity: p.pivot.quantity // Quantity dari pivot
+                    quantity: p.pivot.quantity // Quantity dari pivot table
                 }));
                 setEditFormData(initialEditData);
             }
@@ -151,7 +157,7 @@ export default function OrdersView() {
             alert("Status berhasil diperbarui!");
             fetchOrders(); // Refresh list background
 
-            // Update local state agar UI modal langsung berubah tanpa fetch ulang detail
+            // Update local state agar UI modal langsung berubah tanpa fetch ulang
             setSelectedOrder(prev => ({ ...prev, status: newStatus }));
 
         } catch (error) {
@@ -176,7 +182,6 @@ export default function OrdersView() {
         };
 
         try {
-            // Menggunakan PUT untuk update items pesanan
             await axios.put(`http://127.0.0.1:8000/api/order/${selectedOrder.id}`,
                 payload,
                 { headers: { Authorization: `Bearer ${token}` } }
@@ -185,7 +190,7 @@ export default function OrdersView() {
             alert("Pesanan berhasil diubah!");
             setIsEditingMode(false);
             fetchOrders(); // Refresh list utama
-            handleViewDetail(selectedOrder.id); // Refresh detail modal
+            handleViewDetail(selectedOrder.id); // Refresh detail modal dengan data baru
 
         } catch (error) {
             console.error("Gagal update pesanan:", error);
@@ -216,6 +221,7 @@ export default function OrdersView() {
 
     // --- HELPER FORMATTER ---
     const formatRupiah = (num) => parseInt(num || 0).toLocaleString("id-ID");
+
     const formatDate = (date) => {
         if (!date) return "-";
         return new Date(date).toLocaleDateString("id-ID", {
@@ -233,7 +239,7 @@ export default function OrdersView() {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 p-4 md:p-6 bg-gray-50 min-h-screen font-sans">
             {/* HEADER & FILTER */}
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
                 <h2 className="text-2xl font-bold text-gray-800">
@@ -241,20 +247,22 @@ export default function OrdersView() {
                 </h2>
 
                 <div className="flex gap-3 w-full md:w-auto">
+                    {/* Search Input */}
                     <div className="relative flex-1 md:w-64">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                         <input
                             type="text"
-                            placeholder="Cari ID Order..."
-                            className="w-full pl-9 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-200 outline-none text-sm"
+                            placeholder="Cari Nama Customer atau ID..."
+                            className="w-full pl-9 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-200 outline-none text-sm shadow-sm"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
+                    {/* Filter Status */}
                     <div className="relative">
                         <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                         <select
-                            className="pl-9 pr-8 py-2 border rounded-lg focus:ring-2 focus:ring-orange-200 outline-none text-sm appearance-none bg-white cursor-pointer"
+                            className="pl-9 pr-8 py-2 border rounded-lg focus:ring-2 focus:ring-orange-200 outline-none text-sm appearance-none bg-white cursor-pointer shadow-sm"
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value)}
                         >
@@ -272,20 +280,20 @@ export default function OrdersView() {
             <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left text-gray-600">
-                        <thead className="bg-gray-50 text-gray-700 font-bold uppercase text-xs">
+                        <thead className="bg-gray-100 text-gray-700 font-bold uppercase text-xs">
                             <tr>
                                 <th className="px-6 py-3">ID Order</th>
-                                <th className="px-6 py-3">User ID</th>
+                                <th className="px-6 py-3">Nama Customer</th>
                                 <th className="px-6 py-3">Tanggal</th>
                                 <th className="px-6 py-3">Total</th>
                                 <th className="px-6 py-3">Status</th>
                                 <th className="px-6 py-3 text-center">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y">
+                        <tbody className="divide-y divide-gray-100">
                             {isLoading ? (
                                 <tr>
-                                    <td colSpan="6" className="text-center py-10">
+                                    <td colSpan="6" className="text-center py-12">
                                         <div className="flex flex-col items-center text-gray-500">
                                             <Loader className="animate-spin text-orange-500 mb-2" size={24} />
                                             Memuat data pesanan...
@@ -294,11 +302,25 @@ export default function OrdersView() {
                                 </tr>
                             ) : filteredOrders.length > 0 ? (
                                 filteredOrders.map(order => (
-                                    <tr key={order.id} className="hover:bg-gray-50 transition">
-                                        <td className="px-6 py-4 font-mono text-xs">#{order.id}</td>
-                                        <td className="px-6 py-4">User #{order.user_id}</td>
-                                        <td className="px-6 py-4 text-xs">{formatDate(order.created_at)}</td>
-                                        <td className="px-6 py-4 font-semibold text-orange-600">Rp {formatRupiah(order.total_price)}</td>
+                                    <tr key={order.id} className="hover:bg-orange-50/50 transition duration-150">
+                                        <td className="px-6 py-4 font-mono text-xs font-semibold">#{order.id}</td>
+
+                                        {/* TAMPILKAN NAMA DARI NESTED USER */}
+                                        <td className="px-6 py-4">
+                                            <div className="flex flex-col">
+                                                <span className="font-medium text-gray-900 capitalize">
+                                                    {order.user?.name || "User Tidak Dikenal"}
+                                                </span>
+                                                <span className="text-xs text-gray-400">
+                                                    {order.user?.email || ""}
+                                                </span>
+                                            </div>
+                                        </td>
+
+                                        <td className="px-6 py-4 text-xs text-gray-500">{formatDate(order.created_at)}</td>
+                                        <td className="px-6 py-4 font-semibold text-orange-600 whitespace-nowrap">
+                                            Rp {formatRupiah(order.total_price)}
+                                        </td>
                                         <td className="px-6 py-4">{getStatusBadge(order.status)}</td>
                                         <td className="px-6 py-4 text-center">
                                             <div className="flex justify-center gap-2">
@@ -322,7 +344,7 @@ export default function OrdersView() {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="6" className="text-center py-10 text-gray-500">
+                                    <td colSpan="6" className="text-center py-12 text-gray-500 bg-gray-50">
                                         Tidak ada pesanan ditemukan.
                                     </td>
                                 </tr>
@@ -334,16 +356,16 @@ export default function OrdersView() {
 
             {/* MODAL DETAIL & EDIT PESANAN */}
             {selectedOrder && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 animate-in fade-in">
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
                     <div className="bg-white w-full max-w-2xl rounded-xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
 
                         {/* Modal Header */}
-                        <div className="p-4 border-b flex justify-between items-center bg-orange-50">
+                        <div className="p-4 border-b flex justify-between items-center bg-gray-50">
                             <h3 className="font-bold text-lg text-gray-800 flex items-center gap-2">
                                 {isEditingMode ? "Edit Pesanan" : "Detail Pesanan"} #{selectedOrder.id}
-                                {isEditingMode && <span className="text-xs bg-orange-200 text-orange-800 px-2 py-0.5 rounded">Mode Edit</span>}
+                                {isEditingMode && <span className="text-xs bg-orange-200 text-orange-800 px-2 py-0.5 rounded border border-orange-300">Mode Edit</span>}
                             </h3>
-                            <button onClick={() => setSelectedOrder(null)} className="p-1 hover:bg-gray-200 rounded-full">
+                            <button onClick={() => setSelectedOrder(null)} className="p-2 hover:bg-gray-200 rounded-full transition">
                                 <X size={20} />
                             </button>
                         </div>
@@ -358,13 +380,33 @@ export default function OrdersView() {
                                 <div className="space-y-6">
                                     {/* Info Grid (Non-Editable) */}
                                     <div className="grid grid-cols-2 gap-4 text-sm">
-                                        <div className="bg-gray-50 p-3 rounded-lg">
-                                            <p className="text-gray-500 text-xs">Status Saat Ini</p>
-                                            <div className="mt-1">{getStatusBadge(selectedOrder.status)}</div>
+                                        <div className="bg-gray-50 p-3 rounded-lg border">
+                                            <p className="text-gray-500 text-xs uppercase font-bold tracking-wide mb-1">Status Saat Ini</p>
+                                            <div>{getStatusBadge(selectedOrder.status)}</div>
                                         </div>
-                                        <div className="bg-gray-50 p-3 rounded-lg">
-                                            <p className="text-gray-500 text-xs">Tanggal Pemesanan</p>
-                                            <p className="font-medium">{formatDate(selectedOrder.created_at)}</p>
+                                        <div className="bg-gray-50 p-3 rounded-lg border">
+                                            <p className="text-gray-500 text-xs uppercase font-bold tracking-wide mb-1">Tanggal Order</p>
+                                            <p className="font-medium text-gray-800">{formatDate(selectedOrder.created_at)}</p>
+                                        </div>
+
+                                        {/* DETAIL USER DI MODAL */}
+                                        <div className="bg-blue-50 p-3 rounded-lg col-span-2 border border-blue-100">
+                                            <p className="text-blue-500 text-xs uppercase font-bold tracking-wide mb-1">Informasi Pemesan</p>
+                                            <div className="flex flex-col">
+                                                <p className="font-bold text-gray-800 text-lg capitalize">
+                                                    {selectedOrder.user?.name || "Nama tidak tersedia"}
+                                                </p>
+                                                <p className="text-sm text-gray-500">
+                                                    {selectedOrder.user?.email || "Email tidak tersedia"}
+                                                </p>
+                                                {/* Tambahkan alamat/telepon jika tersedia di JSON */}
+                                                {selectedOrder.user?.phone_number && (
+                                                    <p className="text-sm text-gray-500 mt-1">Telp: {selectedOrder.user.phone_number}</p>
+                                                )}
+                                                {selectedOrder.user?.address && (
+                                                    <p className="text-sm text-gray-500">Alamat: {selectedOrder.user.address}</p>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
 
@@ -384,24 +426,24 @@ export default function OrdersView() {
                                                             onError={(e) => e.target.src = "https://placehold.co/100?text=IMG"}
                                                         />
                                                         <div className="flex-1">
-                                                            <p className="font-bold text-sm text-gray-800">{item.product_name}</p>
+                                                            <p className="font-bold text-sm text-gray-800 line-clamp-1">{item.product_name}</p>
                                                             <p className="text-xs text-orange-600 font-semibold">
                                                                 @ Rp {formatRupiah(item.product_price)}
                                                             </p>
                                                         </div>
 
                                                         {/* Kontrol Quantity */}
-                                                        <div className="flex items-center gap-2 bg-white border rounded-lg p-1">
+                                                        <div className="flex items-center gap-2 bg-white border rounded-lg p-1 shadow-sm">
                                                             <button
                                                                 onClick={() => updateQuantity(index, -1)}
-                                                                className="p-1 hover:bg-gray-100 rounded"
+                                                                className="p-1 hover:bg-gray-100 rounded text-gray-600"
                                                             >
                                                                 <Minus size={14} />
                                                             </button>
                                                             <span className="text-sm font-bold w-6 text-center">{item.quantity}</span>
                                                             <button
                                                                 onClick={() => updateQuantity(index, 1)}
-                                                                className="p-1 hover:bg-gray-100 rounded"
+                                                                className="p-1 hover:bg-gray-100 rounded text-gray-600"
                                                             >
                                                                 <Plus size={14} />
                                                             </button>
@@ -409,7 +451,7 @@ export default function OrdersView() {
 
                                                         <button
                                                             onClick={() => removeProductFromEdit(index)}
-                                                            className="text-red-500 hover:bg-red-100 p-2 rounded-full"
+                                                            className="text-red-500 hover:bg-red-100 p-2 rounded-full transition"
                                                             title="Hapus dari pesanan"
                                                         >
                                                             <Trash2 size={16} />
@@ -432,19 +474,19 @@ export default function OrdersView() {
                                                 {['pending', 'processing'].includes(selectedOrder.status) && (
                                                     <button
                                                         onClick={() => setIsEditingMode(true)}
-                                                        className="text-blue-600 text-xs font-bold hover:underline flex items-center gap-1"
+                                                        className="text-blue-600 text-xs font-bold hover:underline flex items-center gap-1 bg-blue-50 px-2 py-1 rounded"
                                                     >
                                                         <Edit size={12} /> Edit Item
                                                     </button>
                                                 )}
                                             </div>
-                                            <div className="space-y-3 border rounded-lg p-4">
+                                            <div className="space-y-3 border rounded-lg p-4 bg-gray-50/50">
                                                 {selectedOrder.products?.map((product) => (
                                                     <div key={product.id} className="flex gap-4 items-start border-b last:border-0 pb-3 last:pb-0">
                                                         <img
                                                             src={`${STORAGE_URL}${product.product_url_image}`}
                                                             alt={product.product_name}
-                                                            className="w-16 h-16 rounded-md object-cover bg-gray-200"
+                                                            className="w-16 h-16 rounded-md object-cover bg-white border"
                                                             onError={(e) => e.target.src = "https://placehold.co/100?text=IMG"}
                                                         />
                                                         <div className="flex-1">
@@ -480,7 +522,6 @@ export default function OrdersView() {
 
                         {/* Modal Footer (Actions) */}
                         <div className="p-4 border-t bg-gray-50 flex justify-end gap-3 flex-wrap">
-
                             {isEditingMode ? (
                                 // --- TOMBOL AKSI SAAT MODE EDIT ---
                                 <>

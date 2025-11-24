@@ -47,7 +47,7 @@ const MenuHariIni = () => {
                                 style={{ fontFamily: 'Georgia, serif' }}>
                                 Ayam Bakar Kecap
                             </h3>
-                            <p className="text-lg md:text-xl leading-relaxed mb-6">
+                            <p className="text-lg md:text-xl leading-relaxed mb-6 font-normal">
                                 Daging Ayam Kampung yang padat, dibakar dengan bumbu homemade
                                 rahasia kami. 100% Halal, rasa otentik, dijamin bikin nagih!
                             </p>

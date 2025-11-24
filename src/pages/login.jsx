@@ -8,8 +8,7 @@ const API_BASE_URL = "http://127.0.0.1:8000/api";
 const LOGIN_URL = `${API_BASE_URL}/login`;
 
 // Placeholder image
-const loginImage = "https://placehold.co/600x800/2d3748/white?text=Foto+Nasi+Tumpeng";
-
+import loginImage from '../assets/ayam-kampung-bakar-kecap.jpeg';
 function LoginPage() {
     const navigate = useNavigate();
 
@@ -89,7 +88,7 @@ function LoginPage() {
                     navigate('/admin-dashboard');
                 } else {
                     // Jika User -> Profile (Gunakan href agar Navbar refresh state login)
-                    window.location.href = '/profile';
+                    window.location.href = '/';
                 }
 
             } else {
